@@ -17,6 +17,7 @@ _docker() {
         -e "CI_PULL_NR=${CI_PULL_NR}" \
         -e "CI_BASE_BRANCH=${CI_BASE_BRANCH}" \
         -e 'GIT_CACHE_DIR=/data/gitcache' \
+        -e 'GIT_CACHE_AUTOADD=1' \
         -v '/home/ccache:/data/ccache' \
         -v '/srv/riot-ci/.gitcache:/data/gitcache' \
         -v '/tmp:/tmp' \
