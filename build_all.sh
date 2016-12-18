@@ -30,12 +30,16 @@ html_link() {
 build_group() {
     BUILD_GROUP=$1
     echo "Building group $BUILD_GROUP..."
+    local script=./dist/tools/ci/build_and_test.sh
+    [ ! -f "$script" } && script=./dist/tools/travis-scripts/build_and_test.sh
+
     cp -a pkg pkg_${BUILD_GROUP}
-        BUILDTEST_MCU_GROUP=$BUILD_GROUP \
-        RIOT_VERSION_OVERRIDE=buildtest \
-        BUILDTEST_NO_REBASE=1 \
-        RIOTPKG=$(pwd)/pkg_${BUILD_GROUP} \
-        ./dist/tools/travis-scripts/build_and_test.sh > ${TMP_DIR}/${BUILD_GROUP} 2>&1
+
+    BUILDTEST_MCU_GROUP=$BUILD_GROUP \
+    RIOT_VERSION_OVERRIDE=buildtest \
+    BUILDTEST_NO_REBASE=1 \
+    RIOTPKG=$(pwd)/pkg_${BUILD_GROUP} \
+    $script > ${TMP_DIR}/${BUILD_GROUP} 2>&1
 
     RES=$?
     if [ $RES -eq 0 ]; then
