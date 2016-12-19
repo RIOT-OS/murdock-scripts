@@ -31,7 +31,7 @@ build_group() {
     BUILD_GROUP=$1
     echo "Building group $BUILD_GROUP..."
     local script=./dist/tools/ci/build_and_test.sh
-    [ ! -f "$script" } && script=./dist/tools/travis-scripts/build_and_test.sh
+    [ ! -f "$script" ] && script=./dist/tools/travis-scripts/build_and_test.sh
 
     cp -a pkg pkg_${BUILD_GROUP}
 
