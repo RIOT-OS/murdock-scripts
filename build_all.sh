@@ -8,7 +8,7 @@ cleanup() {
     rm -Rf -- "${TMP_DIR}"
 }
 
-ALL_GROUPS="static-tests cortex_m4_3 cortex_m4_2 cortex_m4_1 cortex_m0_2 cortex_m0_1 x86 cortex_m3_2 cortex_m3_1 avr8 msp430 arm7"
+ALL_GROUPS="static-tests cortex_m4_3 cortex_m4_2 cortex_m4_1 cortex_m0_2 cortex_m0_1 x86 cortex_m3_2 cortex_m3_1 avr8 msp430 arm7 mips32r2"
 #ALL_GROUPS="static-tests avr8" # cortex_m4_2 cortex_m4_1 cortex_m0_2 cortex_m0_1 x86 cortex_m3_2 cortex_m3_1 avr8 msp430 arm7"
 
 NPROC=${NPROC:-8}
