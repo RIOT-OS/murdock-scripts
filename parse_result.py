@@ -2,6 +2,7 @@
 
 import json
 import sys
+import os
 
 result_dict = {}
 
@@ -26,6 +27,22 @@ def nicetime(time):
             res += "0"
     res += "%.1fs" % secs
     return res
+
+html = (os.environ.get("HTML") or "false").lower() in { "true", "1" }
+
+def html_link(target, text=""):
+    if not html:
+        return text
+    return "<A HREF=\"#%s\">%s</A>" % (target, text)
+
+def html_anchor(name, text=""):
+    if not html:
+        print(text, end="")
+    else:
+        print("<A NAME=\"%s\">%s</A>" % (name, text), end="")
+
+def output_name(app, board):
+    return hash("output%s%s" % (app, board))
 
 def merge(a, b, path=None):
     "merges b into a"
@@ -93,8 +110,8 @@ def main():
 
     print("")
 
-    print_static(failed.get("static-tests") or passed.get("static-tests"))
-    print("")
+    print_static(result_dict.get("static_tests"))
+    print("---")
     print_compiles()
     print("")
 
@@ -110,14 +127,14 @@ def print_static(job):
     if not job:
         return
 
-    print("STATIC TESTS:")
-    print(job)
+    print("--- static tests:")
+    print(job["result"]["output"])
 
 def print_compiles():
     global result_dict
     d = result_dict["compile"]
 
-    print("--- job results:")
+    print("--- compile job results:")
 
     all_runtime = 0
     all_count = 0
@@ -156,13 +173,14 @@ def print_compiles():
             print("    failed:")
             for n, _tuple in enumerate(_failed):
                 app, board, job = _tuple
-                print("%s" % board, end="\n" if n==(nfailed -1) else ", ")
+
+                print(html_link(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
 
         if _passed:
             print("    passed:")
             for n, _tuple in enumerate(_passed):
                 app, board, job = _tuple
-                print("%s" % board, end="\n" if n==(npassed -1) else ", ")
+                print(html_link(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
 
         print("\n    runtime: total=%s min=%s max=%s avg=%s" % \
                 (nicetime(total), nicetime(_min), nicetime(_max), nicetime(total/(npassed + nfailed))))
@@ -183,6 +201,7 @@ def print_compiles():
     if (all_passed):
         print("\n--- PASSED build outputs:")
         for app, board, job in all_passed:
+            html_anchor(output_name(app, board))
             print("--- build output of app %s for board %s:" % (app, board))
             print(job["result"]["output"], end="")
             print("---")
