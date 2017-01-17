@@ -14,6 +14,8 @@ ALL_GROUPS="static-tests cortex_m4_3 cortex_m4_2 cortex_m4_1 cortex_m0_2 cortex_
 NPROC=${NPROC:-8}
 export NPROC
 
+export CFLAGS_DBG=""
+
 html_anchor() {
     [ -z "$ENABLE_HTML" ] && return
     echo "<a name=\"$1\"></a>"
