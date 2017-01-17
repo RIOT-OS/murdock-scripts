@@ -2,7 +2,7 @@ DOCKER_PID=""
 
 trap 'echo "... TERM signal received" ; [ -n "$DOCKER_PID" ] && kill -TERM $DOCKER_PID ; exit 1' SIGTERM
 
-export CCACHE="/data/riotbuild/bin/ccache"
+export CCACHE="ccache"
 
 _docker() {
     docker run --rm -u "$(id -u)" \
