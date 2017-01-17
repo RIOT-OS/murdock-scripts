@@ -41,8 +41,18 @@ def html_anchor(name, text=""):
     else:
         print("<A NAME=\"%s\">%s</A>" % (name, text), end="")
 
+anchors = {}
+anchor_num = 0
 def output_name(app, board):
-    return hash("output%s%s" % (app, board))
+    global anchors
+    global anchor_num
+    name = "output%s%s" % (app, board)
+    anchor = anchors.get(name)
+    if not anchor:
+        anchor = "a%i" % anchor_num
+        anchors[name] = "a%i" % anchor_num
+        anchor_num += 1
+    return anchor
 
 def merge(a, b, path=None):
     "merges b into a"
