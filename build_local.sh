@@ -20,7 +20,7 @@ _docker() {
         -e 'RIOT_CI_BUILD=1' \
         -v '/home/ccache:/data/ccache' \
         -v '/srv/riot-ci/.gitcache:/data/gitcache' \
-        -v '/tmp:/tmp' \
+        --tmpfs '/tmp' \
         -w '/data/riotbuild' \
         --security-opt seccomp=unconfined \
         'riot/riotbuild:latest' $* &
