@@ -169,7 +169,7 @@ def print_compiles():
             total += runtime
             _min = runtime if _min == -1 else min(runtime, _min)
             _max = max(runtime, _max)
-            if has_passed:
+            if has_passed(job):
                 _passed.append((app, board, job))
             else:
                 _failed.append((app, board, job))
@@ -185,12 +185,14 @@ def print_compiles():
                 app, board, job = _tuple
 
                 print(html_link(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
+            print("")
 
         if _passed:
             print("    passed:")
             for n, _tuple in enumerate(_passed):
                 app, board, job = _tuple
                 print(html_link(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
+            print("")
 
         print("\n    runtime: total=%s min=%s max=%s avg=%s" % \
                 (nicetime(total), nicetime(_min), nicetime(_max), nicetime(total/(npassed + nfailed))))
