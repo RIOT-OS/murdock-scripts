@@ -33,7 +33,10 @@ html = (os.environ.get("HTML") or "false").lower() in { "true", "1" }
 def html_link(target, text=""):
     if not html:
         return text
-    return "<A HREF=\"#%s\">%s</A>" % (target, text)
+    return "<A HREF=\"%s\">%s</A>" % (target, text)
+
+def html_llink(target, text=""):
+    return html_link("#%s" % target, text)
 
 def html_anchor(name, text=""):
     if not html:
@@ -50,7 +53,7 @@ def output_name(app, board):
     anchor = anchors.get(name)
     if not anchor:
         anchor = "a%i" % anchor_num
-        anchors[name] = "a%i" % anchor_num
+        anchors[name] = anchor
         anchor_num += 1
     return anchor
 
@@ -113,14 +116,18 @@ def main():
 
             process(job)
 
+    static_tests = result_dict.get("static_tests")
     if nfailed:
         print("--- result: BUILD FAILED!")
+        if html and ((nfailed > 1) or has_passed(static_tests)):
+            print("\n--- ", end="")
+            print(html_link("#error0", "JUMP TO FIRST ERROR OUTPUT"))
     else:
         print("--- result: BUILD SUCCESSFUL.")
 
     print("")
 
-    print_static(result_dict.get("static_tests"))
+    print_static(static_tests)
     print("---")
     print_compiles()
     print("")
@@ -137,7 +144,7 @@ def print_static(job):
     if not job:
         return
 
-    print("--- static tests:")
+    print("--- static tests:", "passed" if has_passed(job) else "failed!")
     print(job["result"]["output"])
 
 def print_compiles():
@@ -184,14 +191,14 @@ def print_compiles():
             for n, _tuple in enumerate(_failed):
                 app, board, job = _tuple
 
-                print(html_link(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
+                print(html_llink(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
             print("")
 
         if _passed:
             print("    passed:")
             for n, _tuple in enumerate(_passed):
                 app, board, job = _tuple
-                print(html_link(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
+                print(html_llink(output_name(app, board), board), end="\n" if n==(npassed -1) else ", ")
             print("")
 
         print("\n    runtime: total=%s min=%s max=%s avg=%s" % \
@@ -205,8 +212,11 @@ def print_compiles():
     print("\n    total cpu runtime:", nicetime(all_runtime))
 
     if (all_failed):
-        print("\n--- FAILED build outputs:")
+        print("")
+        html_anchor("error0")
+        print("--- FAILED build outputs:")
         for app, board, job in all_failed:
+            html_anchor(output_name(app, board))
             print("--- build output of app %s for board %s:" % (app, board))
             print(job["result"]["output"], end="")
             print("---")
