@@ -77,6 +77,10 @@ get_jobs() {
 
 case "$ACTION" in
     build)
+        # clean possible output
+        rm -Rf output/
+        rm -f prstatus.html.snip
+
         create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_BRANCH $CI_PULL_COMMIT $CI_PULL_NR
 
         export DWQ_REPO="https://github.com/murdock-ci/RIOT"
@@ -96,6 +100,8 @@ case "$ACTION" in
 
         /srv/murdock/murdock/parse_result_live.py $REPORT_QUEUE $CI_PULL_NR &
         REPORTER=$!
+
+        set +e
 
         get_jobs | dwqc \
             -E CI_BASE_REPO -E CI_BASE_BRANCH -E CI_PULL_REPO -E CI_PULL_COMMIT \
