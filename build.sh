@@ -98,7 +98,7 @@ case "$ACTION" in
 
         REPORT_QUEUE="status::PR${CI_PULL_NR}:$(random)"
 
-        /srv/murdock/murdock/parse_result_live.py $REPORT_QUEUE $CI_PULL_NR &
+        /srv/murdock/murdock/parse_result.py "$REPORT_QUEUE" $CI_PULL_NR &
         REPORTER=$!
 
         set +e

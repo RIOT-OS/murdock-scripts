@@ -3,10 +3,15 @@
 import json
 import sys
 import os
+import requests
+import time
+
+from string import Template
+from dwq import Disque, Job
 
 result_dict = {}
 
-def nicetime(time):
+def nicetime(time, tens=True):
     secs = round(time, ndigits=1)
     minutes = secs/60
     hrs = int(minutes/60)
@@ -25,7 +30,10 @@ def nicetime(time):
         res += "%im:" % minutes
     if minutes and secs < 10:
             res += "0"
-    res += "%.1fs" % secs
+    if tens:
+        res += "%.1fs" % secs
+    else:
+        res += "%is" % int(secs)
     return res
 
 html = (os.environ.get("HTML") or "false").lower() in { "true", "1" }
@@ -90,7 +98,7 @@ def listget(_list, n, default=None):
 def has_passed(job):
     return job["result"]["status"] in { 0, "0", "pass" }
 
-def main():
+def static():
     passed = {}
     failed = {}
     npassed = 0
@@ -241,5 +249,172 @@ def process(job):
 
     merge(result_dict, item)
 
+def job_name(job):
+    return os.path.join(*job["result"]["body"]["command"].split()[1:])
+
+def job_result_filename(job, cwd=None):
+    jobname = job_name(job) + ".txt"
+    filename = os.path.join("output", jobname)
+    cwd = cwd or os.getcwd()
+    if os.path.abspath(filename).startswith(cwd):
+        return filename
+    else:
+        return None
+
+def save_job_result(job):
+    filename = job_result_filename(job)
+    if filename:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, "w") as f:
+            f.write(job["result"]["output"])
+        return filename
+
+pbar = Template("""
+<div class="col-md-12">
+<div class="row">
+    <div class="col-md-6">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
+                ${percent}%
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">${text}</div>
+    <div class="col-md-2">${eta}</div>
+</div>
+${failed_jobs}
+</div>
+""")
+#<div class="col-md-3"> ETA: ${eta} </div>
+
+def bootstrap_list2grid(_list, gridsize, firstrow):
+    res = '<div class="row"><div class="col-md-12">' + firstrow + '</div>'
+
+    for n, field in enumerate(_list):
+        if n % gridsize == 0:
+            res += '</div><div class="row">'
+        res += '<div class="col-md-3">' + field + '</div>'
+
+    for n in range(0, (len(_list) + gridsize) % gridsize):
+        res += '<div class="col-md-3"></div>'
+
+    res += '</div>'
+    return res
+
+def dump_to_file(path, data):
+    with open(path + ".tmp", "w") as f:
+        f.write(data)
+    os.rename(path + ".tmp", path)
+
+def post_status(data, prnum, failed_jobs, http_root):
+    if data:
+        total = data.get('total')
+        passed = data.get('passed')
+        failed = data.get('failed')
+        status = data.get('status')
+        eta = data.get('eta')
+
+        if (total != None) and (passed != None) and (failed != None):
+            done = passed + failed
+            percent = str(int((done * 100)/total))
+            text = "<span class=\"glyphicon glyphicon-stats\" aria-hidden=\"true\"></span> fail: %s pass: %s done: %s/%s" % (failed, passed, done, total)
+            eta = "<span class=\"glyphicon glyphicon-time\" aria-hidden=\"true\"></span> %s" % (nicetime(eta, tens=False))
+        else:
+            percent = 0
+            text="<span class=\"glyphicon glyphicon-transfer\" aria-hidden=\"true\"></span> %s" % status
+            eta=""
+    else:
+        status = None
+
+    failed_jobs_html = ""
+    if failed_jobs:
+        failed_links = []
+        for _tuple in failed_jobs:
+            filename, jobname = _tuple
+            if filename:
+                joblink = "<a href=\"%s\"> %s </a>" % (os.path.join(http_root, filename), jobname)
+            else:
+                joblink = jobname
+
+            failed_links.append(joblink)
+
+        failed_jobs_html = bootstrap_list2grid(failed_links, 4, "Failed jobs:")
+
+    if status:
+        pr_status_html = pbar.substitute(percent=percent, text=text, eta=eta, failed_jobs=failed_jobs_html)
+    else:
+        if failed_jobs:
+            pr_status_html = '<div class="col-md-12">' + failed_jobs_html + '</dev>'
+        else:
+            pr_status_html = ""
+
+    do_post(pr_status_html, prnum)
+
+def do_post(html, prnum):
+    post_data = json.dumps({"cmd" : "prstatus", "prnum" : prnum, "html" : html})
+
+    dump_to_file("prstatus.html.snip", html)
+
+    requests.post('http://localhost:3000/control', data=post_data)
+
+def live():
+    global result_dict
+    Disque.connect(["localhost:7711"])
+
+    http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "")
+
+    queue = sys.argv[1]
+    prnum = sys.argv[2]
+
+    last_update = 0
+
+    maxfailed = 20
+    failed_jobs = []
+    nfailed = 0
+
+    try:
+        while True:
+            _list = Job.wait(queue, count=16)
+            for _status in _list:
+                job = _status.get('job')
+
+                if job:
+                    filename = save_job_result(job)
+
+                    if filename and not has_passed(job):
+                        nfailed += 1
+                        jobname = job_name(job)
+                        if jobname == "static_tests":
+                            failed_jobs = [ (filename, jobname) ] + failed_jobs
+
+                        elif nfailed <= maxfailed:
+                            failed_jobs.append((filename, job_name(job)))
+
+                        failed_jobs = failed_jobs[:maxfailed]
+
+                        if nfailed > maxfailed:
+                            failed_jobs.append((None, "(%s more failed jobs)" % (nfailed - maxfailed)))
+
+                if _status.get("status", "") == "done":
+                    post_status(None, prnum, failed_jobs, http_root)
+                    return
+
+                now = time.time()
+                if now - last_update > 0.5:
+                    post_status(_status, prnum, failed_jobs, http_root)
+                    last_update = now
+
+
+    except KeyboardInterrupt:
+        pass
+
 if __name__=="__main__":
-    main()
+    argc = len(sys.argv)
+    if argc < 2 or argc > 3:
+        printf("error: %s <json-data>|<<queue-name> <pr-num>" % sys.argv[0], file=sys.stderr)
+        sys.exit(1)
+
+    if argc == 2:
+        static()
+    else:
+        live()
