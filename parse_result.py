@@ -137,7 +137,7 @@ def static():
 
     print_static(static_tests)
     print("---")
-    print_compiles()
+    print_compiles(npassed, nfailed)
     print("")
 
     print("--- worker stats:")
@@ -155,11 +155,12 @@ def print_static(job):
     print("--- static tests:", "passed" if has_passed(job) else "failed!")
     print(job["result"]["output"])
 
-def print_compiles():
+def print_compiles(npassed, nfailed):
+    http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "")
     global result_dict
     d = result_dict["compile"]
 
-    print("--- compile job results:")
+    print("--- compile job results (%s failed, %s passed, %s total):" % (nfailed, npassed, (nfailed + npassed)))
 
     all_runtime = 0
     all_count = 0
@@ -199,14 +200,18 @@ def print_compiles():
             for n, _tuple in enumerate(_failed):
                 app, board, job = _tuple
 
-                print(html_llink(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
+                print(html_link(job_result_link(job, http_root), board),
+                        "(%s)" % html_llink(output_name(app, board), "\u2b07"),
+                            end="\n" if n==(nfailed -1) else ", ")
+                #print(html_link(output_name(app, board), board), end="\n" if n==(nfailed -1) else ", ")
             print("")
 
         if _passed:
             print("    passed:")
             for n, _tuple in enumerate(_passed):
                 app, board, job = _tuple
-                print(html_llink(output_name(app, board), board), end="\n" if n==(npassed -1) else ", ")
+                print(html_link(job_result_link(job, http_root), board), end="\n" if n==(npassed -1) else ", ")
+                #print(html_link(output_name(app, board), board), end="\n" if n==(npassed -1) else ", ")
             print("")
 
         print("\n    runtime: total=%s min=%s max=%s avg=%s" % \
@@ -225,16 +230,16 @@ def print_compiles():
         print("--- FAILED build outputs:")
         for app, board, job in all_failed:
             html_anchor(output_name(app, board))
-            print("--- build output of app %s for board %s:" % (app, board))
+            print("--- build output of app %s for board %s (%s, runtime=%s):" % (app, board, html_link(job_result_link(job, http_root), "raw"), nicetime(job["result"]["runtime"])))
             print(job["result"]["output"], end="")
             print("---")
-    if (all_passed):
-        print("\n--- PASSED build outputs:")
-        for app, board, job in all_passed:
-            html_anchor(output_name(app, board))
-            print("--- build output of app %s for board %s:" % (app, board))
-            print(job["result"]["output"], end="")
-            print("---")
+#    if (all_passed):
+#        print("\n--- PASSED build outputs:")
+#        for app, board, job in all_passed:
+#            html_anchor(output_name(app, board))
+#            print("--- build output of app %s for board %s:" % (app, board))
+#            print(job["result"]["output"], end="")
+#            print("---")
 
 def process(job):
     global result_dict
@@ -261,6 +266,11 @@ def job_result_filename(job, cwd=None):
     else:
         return None
 
+def job_result_link(job, httproot, cwd=None):
+    filename = job_result_filename(job, cwd)
+    if filename:
+        return os.path.join(httproot, filename)
+
 def save_job_result(job):
     filename = job_result_filename(job)
     if filename:
@@ -274,7 +284,7 @@ pbar = Template("""
 <div class="row">
     <div class="col-md-6">
         <div class="progress">
-            <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
+            <div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
                 ${percent}%
             </div>
         </div>
@@ -373,6 +383,7 @@ def live():
     nfailed = 0
 
     try:
+        post_status({"status" : "setting up build" }, prnum, [], "")
         while True:
             _list = Job.wait(queue, count=16)
             for _status in _list:
