@@ -12,6 +12,30 @@ repo_path() {
     echo $(basename $(dirname $repo_url))/$(basename $repo_url .git)
 }
 
+_gethead() {
+    local gitdir="$1"
+    local url="$2"
+    local branch="${3:-master}"
+
+    git -C "$gitdir" ls-remote "$url" "${branch}" | cut -f1
+}
+
+gethead() {
+    local url="$1"
+    local branch="${2:-master}"
+
+    local gitdir="$(git rev-parse --show-toplevel 2>/dev/null)"
+    [ -z "$gitdir" ] && {
+        local tmpdir="$(mktemp -d)"
+        gitdir="$tmpdir"
+    }
+    _gethead "$gitdir" "$url" "$branch"
+
+    RES=$?
+    [ -n "$tmpdir" ] && rm -rf "$tmpdir"
+    exit $RES
+}
+
 retry() {
     local tries=$1
     local delay=$2
@@ -37,6 +61,7 @@ create_merge_commit() {
     local pr_num="$6"
 
     echo "--- creating merge commit ..."
+    echo "-- merging $pr_head into $base_head"
 
     local tmpdir="$(mktemp -d /tmp/murdock_git.XXXXXX)"
 
@@ -45,7 +70,7 @@ create_merge_commit() {
         set -e
         echo "--- cloning base repo"
         git-cache clone $base_repo $base_head $tmpdir
-        git -C $tmpdir checkout 
+        git -C $tmpdir checkout
 
         echo "--- adding remotes"
         git -C $tmpdir remote add cache_repo "git@github.com:murdock-ci/RIOT"
@@ -80,6 +105,16 @@ case "$ACTION" in
         # clean possible output
         rm -Rf output/
         rm -f prstatus.html.snip
+
+        echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
+
+        ACTUAL_BASE_HEAD="$(gethead ${CI_BASE_REPO} ${CI_BASE_BRANCH})"
+        if [ -n "$ACTUAL_BASE_HEAD" ]; then
+            if [ "$ACTUAL_BASE_HEAD" != "$CI_BASE_COMMIT" ]; then
+                echo "-- HEAD of ${CI_BASE_BRANCH} is $ACTUAL_BASE_HEAD"
+                export CI_BASE_COMMIT="$ACTUAL_BASE_HEAD"
+            fi
+        fi
 
         create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_BRANCH $CI_PULL_COMMIT $CI_PULL_NR
 
