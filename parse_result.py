@@ -141,7 +141,7 @@ def static():
     print("")
 
     print("--- worker stats:")
-    for _worker in workers:
+    for _worker in sorted(list(workers)):
         _pass = passed.get(_worker) or 0
         fail = failed.get(_worker) or 0
         total = _pass + fail
