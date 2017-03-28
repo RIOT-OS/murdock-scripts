@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import json
 import os
 
@@ -75,12 +76,12 @@ def main():
             _command = command.split(" ")
             app = _command[2]
             board = _command[3]
-            merge(buildsizes, { app : { board : sizes } })
+            merge(buildsizes, { app : { board : copy.deepcopy(sizes) } })
 
             sizes["count"] = 1
 
-            merge_add(app_totals, { app : sizes })
-            merge_add(board_totals, { board : sizes })
+            merge_add(app_totals, { app : copy.deepcopy(sizes) })
+            merge_add(board_totals, { board : copy.deepcopy(sizes) })
 
     result = { "sizes" : buildsizes, "app_totals" : app_totals, "board_totals" : board_totals }
     with open(outfile, "w") as f:
