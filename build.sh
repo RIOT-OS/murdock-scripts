@@ -2,7 +2,7 @@
 
 ACTION="$1"
 
-MERGE_COMMIT_REPO="kaspar030/RIOT"
+MERGE_COMMIT_REPO="murdock-ci/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
 
@@ -89,7 +89,7 @@ case "$ACTION" in
     build)
         # clean possible output
         rm -Rf output/
-        rm -f prstatus.html.snip
+        rm -f prstatus.html.snip result.json
 
         echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
 
