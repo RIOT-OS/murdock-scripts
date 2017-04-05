@@ -132,6 +132,13 @@ case "$ACTION" in
 
         kill $REPORTER >/dev/null 2>&1 && wait $REPORTER 2>/dev/null
 
+        # export result to post-build scripts
+        if [ $RES -eq 0 ]; then
+            export CI_BUILD_RESULT=success
+        else
+            export CI_BUILD_RESULT=failed
+        fi
+
         # run post-build.d scripts
         post_build
 
