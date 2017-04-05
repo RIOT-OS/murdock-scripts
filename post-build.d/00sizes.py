@@ -50,8 +50,9 @@ def extract_buildsizes(output):
             return result
 
 def main():
-    infile = os.path.join(os.environ["output_dir"], "result.json")
-    outfile = os.path.join(os.environ["output_dir"], "sizes.json")
+    outdir = os.environ.get("output_dir", os.getcwd())
+    infile = os.path.join(outdir, "result.json")
+    outfile = os.path.join(outdir, "sizes.json")
 
     with open(infile, "r") as f:
         d = json.load(f)
