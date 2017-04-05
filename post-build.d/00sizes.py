@@ -3,6 +3,7 @@
 import copy
 import json
 import os
+import sys
 
 def merge(a, b, path=None):
     "merges b into a"
@@ -54,8 +55,12 @@ def main():
     infile = os.path.join(outdir, "result.json")
     outfile = os.path.join(outdir, "sizes.json")
 
-    with open(infile, "r") as f:
-        d = json.load(f)
+    try:
+        with open(infile, "r") as f:
+            d = json.load(f)
+    except FileNotFoundError:
+        print("cannot open %s. exiting." % infile)
+        sys.exit(1)
 
     buildsizes = {}
     app_totals = {}
