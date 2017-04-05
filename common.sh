@@ -27,3 +27,12 @@ gethead() {
     [ -n "$tmpdir" ] && rm -rf "$tmpdir"
     exit $RES
 }
+
+post_build() {
+    echo "-- processing results ..."
+    for script in $(find ${BASEDIR}/post-build.d -type f -executable); do
+        echo "- running script \"$script\""
+        $script || true
+    done
+    echo "-- done processing results"
+}

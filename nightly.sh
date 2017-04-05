@@ -4,9 +4,7 @@ REPO=https://github.com/RIOT-OS/RIOT
 BRANCHES="master"
 HTTPROOT="/srv/http/ci.riot-labs.de-devel/devel"
 
-BASEDIR="/srv/murdock/murdock-scripts"
-PARSE_RESULTS="${BASEDIR}/parse_result.py"
-SCRIPTS_DIR="${BASEDIR}/post-build.d"
+BASEDIR="$(dirname $(realpath $0))"
 
 . "${BASEDIR}/common.sh"
 
@@ -59,11 +57,7 @@ build() {
     fi
 
     export repo branch commit output_dir
-    echo "-- processing results ..."
-    for script in $(find $SCRIPTS_DIR -type f -executable); do
-        echo "- running script \"$script\""
-        $script || true
-    done
+    post_build
 
     return
 }
@@ -86,7 +80,7 @@ main() {
             cd $output_dir
             cat output.txt
             echo ""
-            [ -s result.json ] && HTML=1 $PARSE_RESULTS result.json
+            [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
         } | ansi2html -s solarized -u > ${output_dir}/output.html
 
         local latest_link="$(dirname "$output_dir")/latest"
