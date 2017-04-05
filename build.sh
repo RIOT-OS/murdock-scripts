@@ -71,7 +71,9 @@ create_merge_commit() {
     set -e
     [ $RES -ne 0 ] && {
         echo "$OUT"
-        false
+        echo "--- creating merge commit failed, aborting!"
+        rm -rf $tmpdir
+        exit 1
     }
 
     export CI_MERGE_COMMIT="$(git -C $tmpdir rev-parse $MERGE_BRANCH)"
