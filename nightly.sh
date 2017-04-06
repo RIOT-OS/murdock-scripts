@@ -8,6 +8,8 @@ BASEDIR="$(dirname $(realpath $0))"
 
 . "${BASEDIR}/common.sh"
 
+[ -f "${BASEDIR}/local.sh" ] && . "${BASEDIR}/local.sh"
+
 get_jobs() {
     dwqc -E NIGHTLY -E STATIC_TESTS -E APPS -E BOARDS './.murdock get_jobs'
 }
@@ -39,7 +41,7 @@ build() {
 
     echo "-- starting build..."
 
-    export NIGHTLY=1 STATIC_TESTS=0 APPS=minimal BOARDS=samr21-xpro
+    export NIGHTLY=1 STATIC_TESTS=0
 
     set +e
 

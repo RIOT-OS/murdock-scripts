@@ -8,6 +8,8 @@ BASEDIR="$(dirname $(realpath $0))"
 
 . "${BASEDIR}/common.sh"
 
+[ -f "${BASEDIR}/local.sh" ] && . "${BASEDIR}/local.sh"
+
 random() {
     hexdump -n ${1:-4} -e '/2 "%u"' /dev/urandom
 }
