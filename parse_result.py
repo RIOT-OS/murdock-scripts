@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import io
 import json
 import sys
 import os
@@ -10,6 +11,8 @@ from string import Template
 from dwq import Disque, Job
 
 result_dict = {}
+
+sys.stdout = io.TextIOWrapper(sys.stdout.detach(), "utf-8", "replace")
 
 def nicetime(time, tens=True):
     secs = round(time, ndigits=1)
