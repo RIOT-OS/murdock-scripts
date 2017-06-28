@@ -140,7 +140,7 @@ def static():
 
     print_static(static_tests)
     print("---")
-    print_compiles(npassed, nfailed)
+    print_compiles()
     print("")
 
     print("--- worker stats:")
@@ -158,15 +158,26 @@ def print_static(job):
     print("--- static tests:", "passed" if has_passed(job) else "failed!")
     print(job["result"]["output"])
 
-def print_compiles(npassed, nfailed):
+def print_compiles():
     http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "")
     global result_dict
     d = result_dict["compile"]
 
-    print("--- compile job results (%s failed, %s passed, %s total):" % (nfailed, npassed, (nfailed + npassed)))
-
     all_runtime = 0
     all_count = 0
+
+    all_failed_count = 0
+    all_passed_count = 0
+
+    for app in d.values():
+        for job in app.values():
+            if has_passed(job):
+                all_passed_count += 1
+            else:
+                all_failed_count += 1
+
+    print("--- compile job results (%s failed, %s passed, %s total):" % \
+            (all_failed_count, all_passed_count, (all_failed_count + all_passed_count)))
 
     all_failed = []
     all_passed = []
