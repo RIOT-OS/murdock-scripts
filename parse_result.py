@@ -57,10 +57,10 @@ def html_anchor(name, text=""):
 
 anchors = {}
 anchor_num = 0
-def output_name(app, board):
+def output_name(*args):
     global anchors
     global anchor_num
-    name = "output%s%s" % (app, board)
+    name = "output%s" % ("".join(list(args)))
     anchor = anchors.get(name)
     if not anchor:
         anchor = "a%i" % anchor_num
@@ -99,6 +99,8 @@ def listget(_list, n, default=None):
         return default
 
 def has_passed(job):
+    if not job:
+        return False
     return job["result"]["status"] in { 0, "0", "pass" }
 
 def static():
@@ -127,7 +129,7 @@ def static():
 
             process(job)
 
-    static_tests = result_dict.get("static_tests")
+    static_tests = result_dict.pop("static_tests", {})
     if nfailed:
         print("--- result: BUILD FAILED!")
         if html and ((nfailed > 1) or has_passed(static_tests)):
@@ -141,6 +143,8 @@ def static():
     print_static(static_tests)
     print("---")
     print_compiles()
+    print("---")
+    print_other()
     print("")
 
     print("--- worker stats:")
@@ -161,10 +165,9 @@ def print_static(job):
 def print_compiles():
     http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "")
     global result_dict
-    d = result_dict["compile"]
+    d = result_dict.pop("compile", {})
 
     all_runtime = 0
-    all_count = 0
 
     all_failed_count = 0
     all_passed_count = 0
@@ -176,8 +179,14 @@ def print_compiles():
             else:
                 all_failed_count += 1
 
+    all_count = all_failed_count + all_passed_count
+
+    if not all_count:
+        print("--- no compile jobs")
+        return
+
     print("--- compile job results (%s failed, %s passed, %s total):" % \
-            (all_failed_count, all_passed_count, (all_failed_count + all_passed_count)))
+            (all_failed_count, all_passed_count, all_count))
 
     all_failed = []
     all_passed = []
@@ -254,6 +263,85 @@ def print_compiles():
 #            print("--- build output of app %s for board %s:" % (app, board))
 #            print(job["result"]["output"], end="")
 #            print("---")
+
+def print_other():
+    http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "")
+    global result_dict
+
+    for key in result_dict.keys():
+        d = result_dict.get(key, {})
+
+        def get_jobs(_dict):
+            if "result" in _dict:
+                yield _dict
+            else:
+                for key, val in _dict.items():
+                    for job in get_jobs(val):
+                        yield job
+
+        jobs = list(get_jobs(d))
+
+        all_failed_count = 0
+        all_passed_count = 0
+
+        for job in jobs:
+            if has_passed(job):
+                all_passed_count += 1
+            else:
+                all_failed_count += 1
+
+        all_count = all_passed_count + all_failed_count
+
+        print("--- %s job results (%s failed, %s passed, %s total):" % \
+                (key, all_failed_count, all_passed_count, (all_failed_count + all_passed_count)))
+
+        failed = []
+        passed = []
+        total = 0
+        _min = -1
+        _max = 0
+        for job in jobs:
+            runtime = job["result"]["runtime"]
+
+            total += runtime
+            _min = runtime if _min == -1 else min(runtime, _min)
+            _max = max(runtime, _max)
+            if has_passed(job):
+                passed.append(job)
+            else:
+                failed.append(job)
+
+        def _print_job(job):
+            command = "/".join(job["result"]["body"]["command"].split()[2:])
+            job["command"] = command
+            print("    " + html_link(job_result_link(job, http_root), command))
+
+        if failed:
+            print("    failed:")
+            html_anchor("error0")
+            for n, job in enumerate(failed):
+                _print_job(job)
+            print("")
+
+        if passed:
+            print("    passed:")
+            for n, job in enumerate(passed):
+                _print_job(job)
+            print("")
+
+        print("\n    runtime: total=%s min=%s max=%s avg=%s" % \
+                (nicetime(total), nicetime(_min), nicetime(_max), nicetime(total/(all_count))))
+
+        print("")
+
+        if False:# failed:
+            print("--- FAILED %s outputs:" % key)
+            for job in failed:
+                command = job["command"]
+                html_anchor(output_name(command))
+                print("--- output of job %s (%s, runtime=%s):" % (command, html_link(job_result_link(job, http_root), "raw"), nicetime(job["result"]["runtime"])))
+                print(job["result"]["output"], end="")
+                print("---")
 
 def process(job):
     global result_dict
