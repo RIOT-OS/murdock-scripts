@@ -266,7 +266,10 @@ def process(job):
         item = last
         last = {}
 
-    merge(result_dict, item)
+    try:
+        merge(result_dict, item)
+    except Exception:
+        print("error parsing command \"%s\"" % command)
 
 def job_name(job):
     return os.path.join(*job["result"]["body"]["command"].split()[1:])
