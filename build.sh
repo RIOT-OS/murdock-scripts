@@ -128,6 +128,8 @@ case "$ACTION" in
 
         RES=$?
 
+        sleep 1
+
         kill $REPORTER >/dev/null 2>&1 && wait $REPORTER 2>/dev/null
 
         # export result to post-build scripts
