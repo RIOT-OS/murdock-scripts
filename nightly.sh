@@ -10,61 +10,9 @@ BASEDIR="$(dirname $(realpath $0))"
 
 [ -f "${BASEDIR}/local.sh" ] && . "${BASEDIR}/local.sh"
 
-get_jobs() {
-    dwqc -E NIGHTLY -E STATIC_TESTS -E APPS -E BOARDS './.murdock get_jobs'
-}
-
-build() {
-    local repo="$1"
-    local branch="$2"
-    local commit="$3"
-    local output_dir="$4"
-
-    export DWQ_REPO="$repo"
-    export DWQ_COMMIT="$commit"
-
-    echo "--- Building branch \"$branch\" from repo \"$repo\""
-    echo "-- HEAD commit is \"$DWQ_COMMIT\""
-
-    echo "-- using output directory \"$output_dir\""
-
-    mkdir -p "$output_dir"
-    cd "$output_dir"
-
-    echo "-- sanity checking build cluster ..."
-    dwqc "test -x .murdock" || {
-        echo "-- failed! aborting..."
-        rm -f result.json
-        return 2
-    } && echo "-- ok."
-
-
-    echo "-- starting build..."
-
+main() {
     export NIGHTLY=1 STATIC_TESTS=0
 
-    set +e
-
-    get_jobs | dwqc \
-        --quiet --outfile result.json
-
-    RES=$?
-
-    set -e
-
-    if [ $RES -eq 0 ]; then
-        echo "-- done. Build succeeded."
-    else
-        echo "-- done. Build failed."
-    fi
-
-    export repo branch commit output_dir
-    post_build
-
-    return
-}
-
-main() {
     for branch in $BRANCHES; do
         local commit="$(gethead $REPO $branch)"
         local output_dir="${HTTPROOT}/$(repo_path $REPO)/$branch/${commit}"

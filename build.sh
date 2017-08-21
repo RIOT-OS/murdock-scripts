@@ -83,10 +83,6 @@ create_merge_commit() {
     echo "--- done."
 }
 
-get_jobs() {
-    dwqc -E APPS -E BOARDS './.murdock get_jobs'
-}
-
 case "$ACTION" in
     build)
         # clean possible output
