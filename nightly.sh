@@ -17,21 +17,7 @@ main() {
         local commit="$(gethead $REPO $branch)"
         local output_dir="${HTTPROOT}/$(repo_path $REPO)/$branch/${commit}"
 
-        [ -d "$output_dir" ] && {
-            echo "--- $REPO $branch $commit:"
-            echo "    $output_dir exists. skipping."
-            continue
-        }
-
-        mkdir -p "$output_dir"
-
-        build $REPO $branch $commit $output_dir | tee $output_dir/output.txt && \
-        {
-            cd $output_dir
-            cat output.txt
-            echo ""
-            [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
-        } | ansi2html -s solarized -u > ${output_dir}/output.html
+        build_commit "$REPO" "$branch" "$commit" "$output_dir" || continue
 
         local latest_link="$(dirname "$output_dir")/latest"
         rm -f "$latest_link"

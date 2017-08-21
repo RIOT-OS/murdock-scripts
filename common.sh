@@ -88,3 +88,25 @@ build() {
     return
 }
 
+build_commit() {
+    local repo="$1"
+    local branch="$2"
+    local commit="$3"
+    local output_dir="$4"
+
+    [ -d "$output_dir" ] && {
+        echo "--- $repo $branch $commit:"
+        echo "    $output_dir exists. skipping."
+        return 1
+    }
+
+    mkdir -p "$output_dir"
+
+    build $repo $branch $commit $output_dir | tee $output_dir/output.txt && \
+    {
+        cd $output_dir
+        cat output.txt
+        echo ""
+        [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
+    } | ansi2html -s solarized -u > ${output_dir}/output.html
+}
