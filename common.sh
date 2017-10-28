@@ -9,7 +9,7 @@ _gethead() {
     local url="$2"
     local branch="${3:-master}"
 
-    git -C "$gitdir" ls-remote "$url" "${branch}" | cut -f1
+    git -C "$gitdir" ls-remote "$url" "refs/heads/${branch}" | cut -f1
 }
 
 gethead() {
