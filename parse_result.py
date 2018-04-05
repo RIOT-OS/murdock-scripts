@@ -400,18 +400,15 @@ pbar = Template("""
 ${failed_jobs}
 </div>
 """)
-#<div class="col-md-3"> ETA: ${eta} </div>
+#<div class="col-md-4"> ETA: ${eta} </div>
 
 def bootstrap_list2grid(_list, gridsize, firstrow):
-    res = '<div class="row"><div class="col-md-12">' + firstrow + '</div>'
+    res = '<div style="margin-top: 1rem" class="row"><div class="col-md-12">' + firstrow + '</div>'
 
     for n, field in enumerate(_list):
         if n % gridsize == 0:
             res += '</div><div class="row">'
-        res += '<div class="col-md-3">' + field + '</div>'
-
-    for n in range(0, (len(_list) + gridsize) % gridsize):
-        res += '<div class="col-md-3"></div>'
+        res += '<div class="col-md-4">' + field + '</div>'
 
     res += '</div>'
     return res
@@ -453,7 +450,7 @@ def post_status(data, prnum, failed_jobs, http_root):
 
             failed_links.append(joblink)
 
-        failed_jobs_html = bootstrap_list2grid(failed_links, 4, "Failed jobs:")
+        failed_jobs_html = bootstrap_list2grid(failed_links, 3, "Failed jobs:")
 
     if status:
         pr_status_html = pbar.substitute(percent=percent, text=text, eta=eta, failed_jobs=failed_jobs_html)
