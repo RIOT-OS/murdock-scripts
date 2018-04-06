@@ -103,6 +103,37 @@ def has_passed(job):
         return False
     return job["result"]["status"] in { 0, "0", "pass" }
 
+
+def create_badge(filename, status="unknown"):
+    badge = Template("""
+<svg xmlns="http://www.w3.org/2000/svg" width="77" height="20">
+<defs>
+  <style type="text/css">
+    <![CDATA[
+      rect {
+        fill: #555;
+      }
+      .passed {
+        fill: rgb(68, 204, 17);
+      }
+      .failed {
+        fill: rgb(224, 93, 68);
+      }
+    ]]>
+  </style>
+</defs>
+<rect rx="3" width="77" height="20" />
+<rect rx="3" x="24" width="53" height="20" class="${status}" />
+<rect x="24" width="4" height="20" class="${status}" />
+<g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+  <text x="19" y="14">CI</text>
+  <text x="50" y="14">${status}</text>
+</g>
+</svg>
+""")
+    with open(filename, "w") as badge_svg:
+        badge.substitute(status=status)
+
 def static():
     passed = {}
     failed = {}
@@ -131,11 +162,13 @@ def static():
 
     static_tests = result_dict.pop("static_tests", {})
     if nfailed:
+        create_badge("badge.svg", "failed")
         print("--- result: BUILD FAILED!")
         if html and ((nfailed > 1) or has_passed(static_tests)):
             print("\n--- ", end="")
             print(html_link("#error0", "JUMP TO FIRST ERROR OUTPUT"))
     else:
+        create_badge("badge.svg", "passed")
         print("--- result: BUILD SUCCESSFUL.")
 
     print("")
