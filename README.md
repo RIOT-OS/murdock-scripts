@@ -14,7 +14,7 @@ RIOT's CI is composed of the following tools:
 - disque, the backend of dwq (https://github.com/antirez/disque)
 - Docker build containers containing RIOT's build environment and a dwq slave (https://github.com/kaspar030/riotdocker branch dwq)
 - The scripts in this repository bridging Murdock build jobs and using dwq to build them on worker slaves
-- Some HTML files to nicely present Murdock's state (https://github.com/RIOT-OS/murdock-pages)
+- Some HTML files to nicely present Murdock's state (https://github.com/RIOT-OS/murdock-html)
 - A Web server proxying HTTPS to Murdock
 - SSH for authenticating worker nodes
 
@@ -72,7 +72,7 @@ See https://github.com/kaspar030/riotdocker/blob/dwq/README.murdock.md.
 
 nginx example (in addition to SSL setup):
 
-- location / points to the content of https://github.com/RIOT-OS/murdock-pages
+- location / points to the content of https://github.com/RIOT-OS/murdock-html
 
 
 ```
