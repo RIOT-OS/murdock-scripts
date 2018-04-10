@@ -104,7 +104,7 @@ def has_passed(job):
     return job["result"]["status"] in { 0, "0", "pass" }
 
 
-def create_badge(filename, status="unknown"):
+def create_badge(filename, status="failed"):
     badge = Template("""
 <svg xmlns="http://www.w3.org/2000/svg" width="77" height="20">
 <defs>
@@ -132,7 +132,7 @@ def create_badge(filename, status="unknown"):
 </svg>
 """)
     with open(filename, "w") as badge_svg:
-        badge.substitute(status=status)
+        badge_svg.write(badge.substitute(status=status))
 
 def static():
     passed = {}
