@@ -25,7 +25,7 @@ gethead() {
 
     RES=$?
     [ -n "$tmpdir" ] && rm -rf "$tmpdir"
-    exit $RES
+    return $RES
 }
 
 post_build() {
