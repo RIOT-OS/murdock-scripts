@@ -126,7 +126,7 @@ def create_badge(filename, status="failed"):
 <rect rx="3" x="24" width="53" height="20" class="${status}" />
 <rect x="24" width="4" height="20" class="${status}" />
 <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
-  <text x="19" y="14">CI</text>
+  <text x="12" y="14">CI</text>
   <text x="50" y="14">${status}</text>
 </g>
 </svg>
