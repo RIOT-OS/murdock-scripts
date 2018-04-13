@@ -70,6 +70,7 @@ build() {
     set +e
 
     get_jobs | dwqc \
+        -E NIGHTLY \
         --quiet --outfile result.json
 
     RES=$?
