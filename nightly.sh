@@ -11,7 +11,7 @@ BASEDIR="$(dirname $(realpath $0))"
 [ -f "${BASEDIR}/local.sh" ] && . "${BASEDIR}/local.sh"
 
 main() {
-    export NIGHTLY=1 STATIC_TESTS=0
+    export NIGHTLY=1 STATIC_TESTS=0 SAVE_JOB_RESULTS=1
 
     for branch in $BRANCHES; do
         local commit="$(gethead $REPO $branch)"
