@@ -135,6 +135,8 @@ def create_badge(filename, status="failed"):
         badge_svg.write(badge.substitute(status=status))
 
 def static():
+    save_job_results = True if os.environ.get("SAVE_JOB_RESULTS", "0") == "1" else False
+
     passed = {}
     failed = {}
     npassed = 0
@@ -159,6 +161,8 @@ def static():
             dictadd(_time, worker, result.get("runtime"))
 
             process(job)
+            if save_job_results:
+                save_job_result(job)
 
     static_tests = result_dict.pop("static_tests", {})
     if nfailed:
