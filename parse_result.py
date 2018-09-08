@@ -459,53 +459,30 @@ def dump_to_file(path, data):
     os.rename(path + ".tmp", path)
 
 def post_status(data, prnum, failed_jobs, http_root):
-    if data:
-        total = data.get('total')
-        passed = data.get('passed')
-        failed = data.get('failed')
-        status = data.get('status')
-        eta = data.get('eta')
+    status = {}
+    # copy expected (but optional) fields that are in data
+    if data is not None:
+        for f in {"total", "passed", "failed", "status", "eta"} & data.keys():
+            status[f] = data[f]
 
-        if (total != None) and (passed != None) and (failed != None):
-            done = passed + failed
-            percent = str(int((done * 100)/total))
-            text = "<span class=\"glyphicon glyphicon-stats\" aria-hidden=\"true\"></span> fail: %s pass: %s done: %s/%s" % (failed, passed, done, total)
-            eta = "<span class=\"glyphicon glyphicon-time\" aria-hidden=\"true\"></span> %s" % (nicetime(eta, tens=False))
-        else:
-            percent = 0
-            text="<span class=\"glyphicon glyphicon-transfer\" aria-hidden=\"true\"></span> %s" % status
-            eta=""
-    else:
-        status = None
-
-    failed_jobs_html = ""
+    # add failed_jobs list (elements have fields "name" [required] and
+    # "href" [optional]) field
     if failed_jobs:
-        failed_links = []
+        status["failed_jobs"] = []
         for _tuple in failed_jobs:
             filename, jobname = _tuple
+            failed_job = {"name": jobname}
             if filename:
-                joblink = "<a href=\"%s\"> %s </a>" % (os.path.join(http_root, filename), jobname)
-            else:
-                joblink = jobname
+                failed_job = {"href": os.path.join(http_root, filename)}
+            status["failed_jobs"].append(failed_job)
 
-            failed_links.append(joblink)
+    do_post_status(status, prnum)
 
-        failed_jobs_html = bootstrap_list2grid(failed_links, 4, "Failed jobs:")
+def do_post_status(status, prnum):
+    post_data = json.dumps({"cmd" : "prstatus", "prnum" : prnum,
+                            "status" : status})
 
-    if status:
-        pr_status_html = pbar.substitute(percent=percent, text=text, eta=eta, failed_jobs=failed_jobs_html)
-    else:
-        if failed_jobs:
-            pr_status_html = '<div class="col-md-12">' + failed_jobs_html + '</dev>'
-        else:
-            pr_status_html = ""
-
-    do_post(pr_status_html, prnum)
-
-def do_post(html, prnum):
-    post_data = json.dumps({"cmd" : "prstatus", "prnum" : prnum, "html" : html})
-
-    dump_to_file("prstatus.html.snip", html)
+    dump_to_file("prstatus.json", json.dumps(status, indent=True))
 
     requests.post('http://localhost:3000/control', data=post_data)
 
