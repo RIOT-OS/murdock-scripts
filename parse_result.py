@@ -421,38 +421,6 @@ def save_job_result(job):
             f.write(job["result"]["output"])
         return filename
 
-pbar = Template("""
-<div class="col-md-12">
-<div class="row">
-    <div class="col-md-6">
-        <div class="progress">
-            <div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
-                ${percent}%
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">${text}</div>
-    <div class="col-md-2">${eta}</div>
-</div>
-${failed_jobs}
-</div>
-""")
-#<div class="col-md-3"> ETA: ${eta} </div>
-
-def bootstrap_list2grid(_list, gridsize, firstrow):
-    res = '<div class="row"><div class="col-md-12">' + firstrow + '</div>'
-
-    for n, field in enumerate(_list):
-        if n % gridsize == 0:
-            res += '</div><div class="row">'
-        res += '<div class="col-md-3">' + field + '</div>'
-
-    for n in range(0, (len(_list) + gridsize) % gridsize):
-        res += '<div class="col-md-3"></div>'
-
-    res += '</div>'
-    return res
-
 def dump_to_file(path, data):
     with open(path + ".tmp", "w") as f:
         f.write(data)
