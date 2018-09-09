@@ -473,7 +473,7 @@ def post_status(data, prnum, failed_jobs, http_root):
             filename, jobname = _tuple
             failed_job = {"name": jobname}
             if filename:
-                failed_job = {"href": os.path.join(http_root, filename)}
+                failed_job["href"] = os.path.join(http_root, filename)
             status["failed_jobs"].append(failed_job)
 
     do_post_status(status, prnum)
