@@ -22,8 +22,8 @@ main() {
         build_commit "$REPO" "$branch" "$commit" "$output_dir" || continue
 
         local latest_link="$(dirname "$output_dir")/latest"
-        rm -f "$latest_link"
-        ln -s "$output_dir" "$latest_link"
+        ln -s -f -T "$output_dir" "$latest_link" || true
+
         # generate JSON so it can be fetched by the web frontend
         ${BASEDIR}/update_nightly_list.py ${REPO_DIR} ${branch}
     done
