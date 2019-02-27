@@ -15,6 +15,9 @@ REPO_DIR="${HTTPROOT}/$(repo_path ${REPO})"
 main() {
     export NIGHTLY=1 STATIC_TESTS=0 SAVE_JOB_RESULTS=1
 
+    echo -n "--- flushing redis test result cache: "
+    redis-cli flushall
+
     for branch in $BRANCHES; do
         local commit="$(gethead $REPO $branch)"
         local output_dir_commit="${REPO_DIR}/$branch/${commit}"
