@@ -66,7 +66,7 @@ Its .ssh/authorized_keys will contain ssh keys for every allowed worker.
 
 ## Setup worker nodes
 
-See https://github.com/kaspar030/riotdocker/blob/dwq/README.murdock.md.
+See https://github.com/kaspar030/riotdocker/blob/dwq/README.md.
 
 ## Setup frontend HTTP proxy
 
