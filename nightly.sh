@@ -23,6 +23,7 @@ main() {
         local output_dir_commit="${REPO_DIR}/$branch/${commit}"
         local output_dir="${output_dir_commit}.$(date +'%Y%m%d%H%M')"
         local latest_link="$(dirname "$output_dir")/latest"
+        local last_commit=$(basename $(readlink -f "${latest_link}"))
 
         build_commit "$REPO" "$branch" "$commit" "$output_dir" || continue
 
@@ -31,6 +32,7 @@ main() {
 
         # generate JSON so it can be fetched by the web frontend
         ${BASEDIR}/update_nightly_list.py ${REPO_DIR} ${branch}
+        ${BASEDIR}/notify ${REPO_DIR} ${commit} ${last_commit}
     done
 }
 
