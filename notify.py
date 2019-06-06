@@ -74,11 +74,12 @@ class MailNotifier(object):
 
 def get_config():
     with open(MURDOCK_CONFIG) as config_file:
-        return toml.load(config_file)["notifications"]
+        return toml.load(config_file)
 
 
-def notify_branch_results(notifiers, config, repodir, current_build,
-                          last_build=None, branch="master"):
+def notify_branch_results(notifiers, repodir, current_build,
+                          last_build=None, branch="master",
+                          only_changes=False):
     nightlies_json = os.path.join(repodir, branch, NIGHTLIES_JSON)
     if not os.path.exists(nightlies_json):
         logging.warning("{} not found".format(nightlies_json))
@@ -88,7 +89,7 @@ def notify_branch_results(notifiers, config, repodir, current_build,
     current_build = find_commit_build(nightlies, current_build)
     if last_build is not None:
         last_build = find_commit_build(nightlies, last_build)
-    if config.get("only_changes") and (last_build is not None) and \
+    if only_changes and (last_build is not None) and \
             (last_build["result"] == current_build["result"]):
         logging.info("Skipping unchanged status for {} to {}"
                      .format(last_build["commit"], current_build["commit"]))
@@ -124,12 +125,13 @@ def notify_branch_results(notifiers, config, repodir, current_build,
         notifier.notify(subject, MESSAGE_TEMPLATES[result].format(**summary))
 
 
-def notify_results(notifiers, config, repodir, current_build,
-                   last_build=None):
-    branches = config["branches"]
+def notify_results(notifiers, repodir, current_build, last_build=None,
+                   branches=None, only_changes=False):
+    if branches is None:
+        branches = ["master"]
     for branch in branches:
-        notify_branch_results(notifiers, config, repodir, current_build,
-                              last_build, branch)
+        notify_branch_results(notifiers, repodir, current_build,
+                              last_build, branch, only_changes)
 
 
 def main(repodir, current_build, last_build=None):
@@ -143,13 +145,13 @@ def main(repodir, current_build, last_build=None):
         logging.error("You can change the path to the Murdock config using "
                       "the MURDOCK_CONFIG environment variable")
         sys.exit(1)
-    except KeyError:
-        logging.error("Config has no 'notifications' section")
-        sys.exit(1)
+    if "notifications" in config:
+        logging.warning("No notifications section found in {} won't notify"
+                        .format(MURDOCK_CONFIG))
+        sys.exit(0)
     notifiers = []
-    for notifier, notifier_config in config.items():
-        if notifier in ["branches", "only_changes"]:
-            continue
+    for notifier, notifier_config in config.get("notifiers", {}).items():
+        # reads `notifiers.*` sections as dictionary
         try:
             notifier_class = NOTIFIER_CLASS[notifier]
         except KeyError:
@@ -157,8 +159,10 @@ def main(repodir, current_build, last_build=None):
                             .format(notifier))
             sys.exit(1)
         notifiers.append(notifier_class(**notifier_config))
-    notify_results(notifiers, config, repodir, current_build,
-                   last_build)
+    notify_results(notifiers, repodir, current_build, last_build,
+                   branches=config["notifications"].get("branches"),
+                   only_changes=config["notifications"].get("only_changes",
+                                                            False))
 
 
 if __name__ == "__main__":

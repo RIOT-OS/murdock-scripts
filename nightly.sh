@@ -23,7 +23,8 @@ main() {
         local output_dir_commit="${REPO_DIR}/$branch/${commit}"
         local output_dir="${output_dir_commit}.$(date +'%Y%m%d%H%M')"
         local latest_link="$(dirname "$output_dir")/latest"
-        local last_commit=$(basename $(readlink -f "${latest_link}"))
+        local last_commit=$(basename $(readlink -f "${latest_link}" | \
+                            awk -F. '{print $1}'))
 
         build_commit "$REPO" "$branch" "$commit" "$output_dir" || continue
 
