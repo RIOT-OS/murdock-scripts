@@ -29,8 +29,9 @@ def main(repodir, branch="master"):
         nightly = []
     branch_dir = os.path.join(repodir, branch)
     # get hash of latest commit from symlink
+    # (drop possible build time suffix)
     latest_commit = os.path.realpath(os.path.join(branch_dir, "latest"))\
-        .split(os.path.sep)[-1]
+        .split(os.path.sep)[-1].split(".")[0]
     # check if it was already build in a previous build
     build = find_commit_build(nightly, latest_commit)
     if build is None:
