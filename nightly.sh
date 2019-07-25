@@ -1,7 +1,6 @@
 #!/bin/sh -e
 
 REPO=https://github.com/RIOT-OS/RIOT
-BRANCHES="master"
 HTTPROOT="/srv/http/ci.riot-labs.de-devel/devel"
 
 BASEDIR="$(dirname $(realpath $0))"
@@ -11,6 +10,8 @@ BASEDIR="$(dirname $(realpath $0))"
 [ -f "${BASEDIR}/local.sh" ] && . "${BASEDIR}/local.sh"
 
 REPO_DIR="${HTTPROOT}/$(repo_path ${REPO})"
+BRANCHES=$(wget -O - ${REPO}/blob/master/.nightly-branches)
+BRANCHES=${BRANCHES:-"master"}
 
 main() {
     export NIGHTLY=1 STATIC_TESTS=0 SAVE_JOB_RESULTS=1
