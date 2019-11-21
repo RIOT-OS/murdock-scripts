@@ -33,7 +33,7 @@ main() {
 
         # generate JSON so it can be fetched by the web frontend
         ${BASEDIR}/update_nightly_list.py ${REPO_DIR} ${branch}
-        ${BASEDIR}/notify ${REPO_DIR} ${commit} ${last_commit}
+        ${BASEDIR}/notify.py ${REPO_DIR} ${commit} ${last_commit}
     done
 }
 
