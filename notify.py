@@ -145,7 +145,7 @@ def main(repodir, current_build, last_build=None):
         logging.error("You can change the path to the Murdock config using "
                       "the MURDOCK_CONFIG environment variable")
         sys.exit(1)
-    if "notifications" in config:
+    if "notifications" not in config:
         logging.warning("No notifications section found in {} won't notify"
                         .format(MURDOCK_CONFIG))
         sys.exit(0)
