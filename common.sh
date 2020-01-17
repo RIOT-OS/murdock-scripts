@@ -71,7 +71,7 @@ build() {
 
     get_jobs | dwqc \
         -E NIGHTLY \
-        --quiet --outfile result.json
+        --quiet --maxfail 500 --outfile result.json
 
     RES=$?
 
