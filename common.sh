@@ -38,7 +38,8 @@ post_build() {
 }
 
 get_jobs() {
-    dwqc -E NIGHTLY -E STATIC_TESTS -E APPS -E BOARDS './.murdock get_jobs'
+    dwqc -E CI_PULL_LABELS -E NIGHTLY -E STATIC_TESTS -E APPS -E BOARDS \
+        './.murdock get_jobs'
 }
 
 build() {
