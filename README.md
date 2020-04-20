@@ -109,6 +109,107 @@ nginx example (in addition to SSL setup):
     }
 ```
 
+
 # Cluster management
 
-TODO
+## Perequisites
+
+Install autossh using package manager, and "dwq" from pip3.
+
+
+## Setup
+
+1. set up ssh authentication to ci.riot-os.org.
+
+E.g., add this to `~/.ssh/config`:
+
+```
+Host murdock
+HostName ci.riot-os.org
+User murdock-slave
+Port 22
+IdentityFile ~/.ssh/id_rsa_murdock-slave
+IdentitiesOnly yes
+LocalForward 7711 127.0.0.1:7711
+LocalForward 6379 127.0.0.1:6379
+ServerAliveInterval 60
+ServerAliveCountMax 2
+```
+
+Make sure `~/.ssh/id_rsa_murdock-slave` can log in to `murdock-slave@ci.riot-os.org`.
+
+2. keep an ssh connection open that forwards the ports 7711 and 6379.
+
+E.g., use this alias and "autossh":
+
+    $ alias dwq_connect='autossh -M0 -N -C -f murdock'
+
+Then start up autossh with `dwq_connect` (automate this or repeat for each session).
+
+
+## dwqm (dwq management utility)
+
+Try "dwqm --help".
+
+Useful things:
+
+- list all queues in the disque instance:
+
+    $ dwqm queue --list
+
+This is a raw queue listing and includes queues used internally by dwq. Those
+are named "control::*" and "status::*".
+
+- list all connected workers:
+
+    $ dwqm control --list
+
+- set worker(s) to "paused", will not run any jubs until resumed or restarted:
+
+    $ dwqm control --pause  worker1 [worker2] ...
+
+- resume worker(s):
+
+    $ dwqm control --resume  worker1 [worker2] ...
+
+- shutdown worker(s) (with our current murdock scripts, this will shutdown the
+  worker, pull the newest build container, then __restart__ the worker):
+
+    $ dwqm control --shutdown  worker1 [worker2] ...
+
+## dwqc (dwq client, runs jobs on queue)
+
+In our setup, every build worker listens on the "default" queue. Those workers
+are executing inside of the build container.
+
+Every test worker listens on a queue named after the board it is connected to,
+e.g., "samr21-xpro", "nrf52dk" or "esp32-wroom-32".
+
+__every__ worker also listens on a queue named after it's hostname
+
+For example, in our setup, "riotbuild" listens on the queues "default" and
+"riotbuild", "pi-36f90aef" listend on "pi-36f90aef" and "nrf52dk".
+
+`dwqc` needs a git repo and commit either as parameters or via environment.
+Either manually set "DWQ_REPO" and "DWQ_COMMIT", or use an alias:
+
+    $ alias dwqset='export DWQ_REPO=https://github.com/RIOT-OS/RIOT DWQ_COMMIT=$(git rev-parse HEAD)'
+    $ cd src/riot
+    $ dwqset    # following dwqc jobs will now be executed in the specified checkout
+
+
+Run a single job on the queue named "default":
+
+    $ dwqc "echo hello world!"
+
+Run a single job on a specific queue:
+
+    $ dwqc -q riotbuild "ccache -s"
+
+Run multiple jobs on a single queue:
+
+    $ for i in $(seq 10); do echo "echo $i"; done | dwqc -q queue_name
+
+Create command from stdin plus base command:
+
+    $ echo "first second third" | dwqc -s "echo \${1}" # will create job "echo first"
