@@ -28,7 +28,6 @@ def extract_json_metrics(output):
         if line.startswith("{"):
             try:
                 metric = json.loads(line)
-                print(metrics, metric)
                 metrics = merge(metrics, metric)
             except json.decoder.JSONDecodeError:
                 pass
