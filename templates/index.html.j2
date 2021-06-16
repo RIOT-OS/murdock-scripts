@@ -1,0 +1,84 @@
+{% include "header.html.j2" %}
+
+<body>
+<script>
+function filter_item(string, cls, prefix) {
+    $(cls).filter(function() {
+        if (string == "") {
+            $(this).toggle(true)
+        }
+        else {
+            $(this).toggle($(this).attr("id").replace(prefix, "").includes(string))
+        }
+    });
+}
+$(document).ready(function() {
+    $("#builds_failures_filter").on("keyup", function() {
+        filter_item($(this).val().toLowerCase(), ".accordion-item", "builds-job-")
+    })
+    $("#builds_filter").on("keyup", function() {
+        filter_item($(this).val().toLowerCase(), ".builds-application-item", "builds-application-")
+    })
+    $("#tests_failures_filter").on("keyup", function() {
+        filter_item($(this).val().toLowerCase(), ".accordion-item", "tests-job-")
+    })
+    $("#tests_filter").on("keyup", function() {
+        filter_item($(this).val().toLowerCase(), ".tests-application-item", "tests-application-")
+    })
+})
+</script>
+{% with results_active=" active" %}
+{% include "nav.html.j2" %}
+{% endwith %}
+
+<div class="container">
+    {% include "info_top.html.j2" %}
+    <ul class="nav nav-tabs" role="tablist">
+        {% with elem_name="builds", elem_selected=true, elem_count=builds_count, elem_failures_count=build_failures_count %}
+        {% include "nav_results.html.j2" %}
+        {% endwith %}
+        {% with elem_name="tests", elem_selected=false, elem_count=tests_count, elem_failures_count=test_failures_count %}
+        {% include "nav_results.html.j2" %}
+        {% endwith %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if not builds_count and not tests_count %}active{% endif %}" style="width: 10rem;" id="output-tab" data-bs-toggle="tab" data-bs-target="#output-content" type="button" role="tab" aria-controls="output-content" aria-selected="false">
+                <i class="bi bi-file-text me-1"></i>Output
+            </button>
+        </li>
+        {% if builds_count %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" style="width: 10rem;" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-content" type="button" role="tab" aria-controls="stats-content" aria-selected="false">
+                <i class="bi-bar-chart-line me-1"></i>Stats
+            </button>
+        </li>
+        {% endif %}
+    </ul>   <!-- nav-tabs -->
+    <div class="tab-content">
+        {% if builds_count %}
+        {% with elem_name="builds", elem_jobs_type="compile", elem_jobs=builds, elem_jobs_count=builds_count, elem_jobs_success=build_success, elem_jobs_success_count=build_success_count, elem_jobs_failures=build_failures, elem_jobs_failures_count=build_failures_count %}
+        {% include "tab_results.html.j2" %}
+        {% endwith %}
+        {% endif %}
+        {% if tests_count %}
+        {% with elem_name="tests", elem_jobs_type="run_test", elem_jobs=tests, elem_jobs_count=tests_count, elem_jobs_success=test_success, elem_jobs_success_count=test_success_count, elem_jobs_failures=test_failures, elem_jobs_failures_count=test_failures_count %}
+        {% include "tab_results.html.j2" %}
+        {% endwith %}
+        {% endif %}
+        <div class="tab-pane {% if not builds_count %}active{% endif %}" id="output-content" role="tabpanel" aria-labelledby="output-tab">
+            <div class="card m-1">
+                <div class="card-header">
+                    <span class="pull-left align-middle m-1">
+                    <a class="btn p-0" href="{{ base_url }}/output.txt" target="_blank" rel="noopener noreferrer" role="button" target="_blank" rel="noopener noreferrer">
+                    Raw text <i class="bi-file-text "></i></a>
+                    </span>
+                </div>
+                <div class="card-body p-0 bg-dark">
+                    <pre class="text-start text-light p-1" style="font-size: 0.9rem;">{{ main_job_output }}</pre>
+                </div>
+            </div>
+        </div>
+        {% include "stats.html.j2" %}
+    </div>  <!-- tab content -->
+</div>  <!-- main container -->
+</body>
+</html>

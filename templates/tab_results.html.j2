@@ -1,0 +1,93 @@
+<div class="tab-pane {% if elem_name == "builds" %}active{% endif %}" id="{{ elem_name }}-content" role="tabpanel" aria-labelledby="{{ elem_name }}-tab">
+    {% if elem_jobs_failures_count %}
+    <div class="card border-danger m-1">
+        <div class="card-header text-light bg-danger">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    Failed {{ elem_name }} ({{ elem_jobs_failures_count }})
+                </div>
+                <div class="col-md-4">
+                    <input id="{{ elem_name }}_failures_filter" class="form-control" type="text" style="width:100%;" placeholder="Filter failed {{ elem_name }}">
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="accordion accordion-flush" id="{{ elem_name }}FailuresAccordion">
+                {% for application, jobs in elem_jobs_failures.items() %}
+                {% for job in jobs %}
+                <div class="accordion-item" id="{{ elem_name }}-job-{{ job.application }}-{{ job.board }}-{{ job.toolchain }}">
+                    <h2 class="accordion-header" id="flush-heading-{{ elem_name }}-failure-{{ job.application | replace("/", "_") }}-{{ job.board }}-{{ job.toolchain | replace("-", "_") }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse-{{ elem_name }}-failure-{{ job.application | replace("/", "_") }}-{{ job.board }}-{{ job.toolchain | replace("-", "_") }}" aria-expanded="false" aria-controls="flush-collapse-{{ elem_name }}-failure-{{ job.application | replace("/", "_") }}-{{ job.board }}-{{ job.toolchain | replace("-", "_") }}">
+                            <div class="row align-items-center">
+                                <div class="col col-md-4 align-self-start">
+                                    <i class="bi-x-circle-fill me-1" style="color: red;"></i>{{ job.application }}
+                                </div>
+                                <div class="col col-md-4 align-self-start">
+                                    <i class="bi-cpu pull-left me-1" style="font-size: 1rem;"></i>{{ job.board }}:{{ job.toolchain }}
+                                </div>
+                                <div class="col col-md-3 align-self-end">
+                                    <i class="bi-wrench me-1" style="font-size: 1rem;"></i>{{ job.worker }}
+                                </div>
+                                <div class="col col-md-1 align-self-end">
+                                    <i class="bi-clock me-1" style="font-size: 1rem;"></i>{{ "%.2f"|format(job.runtime) }}s
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="flush-collapse-{{ elem_name }}-failure-{{ job.application | replace("/", "_") }}-{{ job.board }}-{{ job.toolchain | replace("-", "_") }}" class="accordion-collapse collapse" aria-labelledby="flush-heading-{{ elem_name }}-failure-{{ job.application | replace("/", "_") }}-{{ job.board }}-{{ job.toolchain | replace("-", "_") }}" data-bs-parent="#{{ elem_name }}FailuresAccordion">
+                        <div class="accordion-body">
+                            <div class="card m-1">
+                                <div class="card-header">
+                                    <span class="pull-left align-middle m-1">
+                                    <a class="btn p-0" href="{{ base_url }}/output/{{ job.type }}/{{ job.application }}/{{ job.board }}:{{ job.toolchain }}.txt" target="_blank" rel="noopener noreferrer" role="button" target="_blank" rel="noopener noreferrer">
+                                    Raw text <i class="bi-file-text "></i>
+                                    </a>
+                                    </span>
+                                </div>
+                                <div class="card-body p-0">
+                                    <pre class="text-start text-white bg-dark p-1" style="font-size: 0.9rem;">{{ job.output }}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if elem_jobs_count %}
+    <div class="card m-1">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">{{ elem_name | title }} ({{ elem_jobs_count }})</div>
+                <div class="col-md-4">
+                    <input id="{{ elem_name }}_filter" class="form-control pull-right" type="text" placeholder="Filter {{ elem_name }}">
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% for application, jobs in elem_jobs.items() %}
+            <div class="card m-1 {{ elem_name }}-application-item" id="{{ elem_name }}-application-{{ application }}">
+                <a class="text-decoration-none text-start" href="{{ base_url }}/html/{{ elem_jobs_type }}/{{ application }}.html" style="width: 100%;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col col-md-10">
+                                <i class="bi-{% if elem_jobs_failures[application] %}x-circle-fill me-1" style="color: red;">{% else %}check-circle-fill me-1" style="color: green;">{% endif %}</i><span class="text-dark">{{ application }}</span>
+                            </div>
+                            <div class="col col-md-2">
+                                <p class="text-end p-0 m-0">
+                                    {% if elem_jobs_failures[application] %}<span class="badge bg-danger me-1">{{ elem_jobs_failures[application] | length }} failed</span>{% endif %}
+                                    {% if elem_jobs_success[application] %}<span class="badge bg-success">{{ elem_jobs_success[application] | length }} success</span>{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>

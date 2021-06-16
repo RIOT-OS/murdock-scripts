@@ -1,0 +1,8 @@
+{% if pr_num or build_branch %}
+<div class="row">
+    <div class="col-md-4">
+        <a class="btn bg-{% if status == "failed" %}danger{% else %}success{% endif %} text-light m-1" href="https://github.com/RIOT-OS/RIOT/{% if pr_num %}pull/{{ pr_num }}{% endif %}{% if build_branch %}tree/{{ build_branch }}{% endif %}" target="_blank" rel="noopener noreferrer"><i class="bi-link-45deg"></i>{% if pr_num %}PR #{{ pr_num }}{% endif %}{% if build_branch %}Branch {{ build_branch }}{% endif %}</a>
+        <a class="btn bg-{% if status == "failed" %}danger{% else %}success{% endif %} text-light m-1" href="https://github.com/RIOT-OS/RIOT/{% if pr_commit %}commit/{{ pr_commit }}{% endif %}{% if build_commit %}commit/{{ build_commit }}{% endif %}" target="_blank" rel="noopener noreferrer"><i class="bi-tag"></i>{% if pr_commit %}{{ pr_commit[:8] }}{% endif %}{% if build_commit %}{{ build_commit[:8] }}{% endif %}</a>
+    </div>
+</div>
+{% endif %}

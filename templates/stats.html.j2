@@ -1,0 +1,42 @@
+{% if builds_count %}
+<div class="tab-pane" id="stats-content" role="tabpanel" aria-labelledby="stats-tab">
+    <div class="card m-1">
+        <div class="card-header">Global stats</div>
+        <div class="card-body">
+            <ul class="list-group">
+                <li class="list-group-item">Build jobs: {{ builds_count }}</li>
+                {% if tests_count %}
+                <li class="list-group-item">Run test jobs: {{ tests_count }}</li>
+                <li class="list-group-item">Total jobs: {{ builds_count + tests_count }}</li>
+                {% endif %}
+                <li class="list-group-item">Total CPU time: {{ total_time }}</li>
+            </ul>
+        </div>
+        <div class="card m-1">
+            <div class="card-header">Workers stats</div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Worker</th>
+                            <th scope="col">Average time (s)</th>
+                            <th scope="col">Total CPU time (s)</th>
+                            <th scope="col">Total jobs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for worker in workers %}
+                        <tr>
+                            <th scope="row">{{ worker }}</th>
+                            <td>{{ "%.2f"|format((workers_runtimes[worker] | sum) / (workers_runtimes[worker] | length)) }}</td>
+                            <td>{{ "%.2f"|format(workers_runtimes[worker] | sum) }}</td>
+                            <td>{{ (workers_runtimes[worker] | length) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>  <!-- stats tab content -->
+{% endif %}

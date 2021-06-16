@@ -1,0 +1,7 @@
+{% if elem_count %}
+<li class="nav-item" role="presentation">
+    <button  class="nav-link{% if elem_selected %} active{% endif %}" style="width: 10rem;" id="{{ elem_name }}-tab" data-bs-toggle="tab" data-bs-target="#{{ elem_name }}-content" type="button" role="tab" aria-controls="{{ elem_name }}-content" aria-selected="{{ elem_selected }}">
+        {% if elem_failures_count %}<i class="bi-x-circle-fill text-danger me-1"></i>{% else %}<i class="bi-check-circle-fill text-success me-1"></i>{% endif %}{{ elem_name | title }}
+    </button>
+</li>
+{% endif %}

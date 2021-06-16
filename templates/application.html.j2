@@ -1,0 +1,66 @@
+{% include "header.html.j2" %}
+
+<body>
+<script>
+function filter_item(string, cls, prefix) {
+    $(cls).filter(function() {
+        if (string == "") {
+            $(this).toggle(true)
+        }
+        else {
+            $(this).toggle($(this).attr("id").replace(prefix, "").includes(string))
+        }
+    });
+}
+$(document).ready(function() {
+    $("#job_failures_filter").on("keyup", function() {
+        filter_item($(this).val().toLowerCase(), ".job-failure-item", "job-failure-")
+    })
+    $("#jobs_filter").on("keyup", function() {
+        filter_item($(this).val().toLowerCase(), ".job-item", "job-")
+    })
+})
+</script>
+{% with results_active="" %}
+{% include "nav.html.j2" %}
+{% endwith %}
+<div class="container">
+    {% include "info_top.html.j2" %}
+    <div class="my-2">
+        <h3>{{ job_type }}: {{ application }}</h3>
+    </div>
+    {% if job_failures | length %}
+    <div class="card border-danger m-1">
+        <div class="card-header text-light bg-danger">
+            <div class="row align-items-center">
+                <div class="col col-md-8">Failed jobs ({{ job_failures | length }})</div>
+                <div class="col col-md-4"><input id="job_failures_filter" class="form-control" type="text" placeholder="Failed jobs filter"></div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% for job in job_failures %}
+            <div class="row job-failure-item" id="job-failure-{{ job.board }}:{{ job.toolchain }}">
+                {% include "job.html.j2" %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <div class="card m-1">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col col-md-8">All jobs ({{ jobs | length }})</div>
+                <div class="col col-md-4"><input id="jobs_filter" class="form-control" type="text" placeholder="Jobs filter"></div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% for job in jobs %}
+            <div class="card m-1 job-item" id="job-{{ job.board }}:{{ job.toolchain }}">
+                {% include "job.html.j2" %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</body>
+</html>
