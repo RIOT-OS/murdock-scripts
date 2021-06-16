@@ -152,6 +152,8 @@ case "$ACTION" in
             echo ""
             [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
         } | ansi2html -s solarized -u > output.html
+
+        ${BASEDIR}/parse_result.py static result.json output.txt
         ;;
     *)
         echo "$0: unhandled action $ACTION"

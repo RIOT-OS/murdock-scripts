@@ -111,4 +111,9 @@ build_commit() {
         echo ""
         [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
     } | ansi2html -s solarized -u > ${output_dir}/output.html
+
+    {
+        cd $output_dir
+        BUILD_BRANCH=${branch} BUILD_COMMIT=${commit} ${BASEDIR}/parse_result.py static result.json output.txt
+    }
 }
