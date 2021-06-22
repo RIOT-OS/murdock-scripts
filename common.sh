@@ -66,7 +66,8 @@ build() {
         return 2
     } && echo "-- ok."
 
-    echo "-- starting build..."
+    local start_date=$(date -Iseconds)
+    echo "-- starting build at $start_date..."
 
     set +e
 
@@ -74,14 +75,15 @@ build() {
         -E NIGHTLY \
         --quiet --maxfail 500 --outfile result.json
 
+    local end_date=$(date -Iseconds)
     RES=$?
 
     set -e
 
     if [ $RES -eq 0 ]; then
-        echo "-- done. Build succeeded."
+        echo "-- done at $end_date. Build succeeded."
     else
-        echo "-- done. Build failed."
+        echo "-- done at $end_date. Build failed."
     fi
 
     export repo branch commit output_dir
