@@ -426,7 +426,7 @@ def dump_to_file(path, data):
         f.write(data)
     os.rename(path + ".tmp", path)
 
-def post_status(data, prnum, failed_jobs, http_root):
+def update_status(data, uid, failed_jobs, http_root):
     status = {}
     # copy expected (but optional) fields that are in data
     if data is not None:
@@ -444,15 +444,19 @@ def post_status(data, prnum, failed_jobs, http_root):
                 failed_job["href"] = os.path.join(http_root, filename)
             status["failed_jobs"].append(failed_job)
 
-    do_post_status(status, prnum)
+    do_put_status(status, uid)
 
-def do_post_status(status, prnum):
-    post_data = json.dumps({"cmd" : "prstatus", "prnum" : prnum,
-                            "status" : status})
+def do_put_status(status, uid):
+    token = sys.argv[3]
+    data = json.dumps({"uid" : uid, "status" : status})
 
     dump_to_file("prstatus.json", json.dumps(status, indent=True))
 
-    requests.post('http://localhost:3000/control', data=post_data)
+    requests.put(
+        f'http://localhost:8000/jobs/running/{uid}/status',
+        headers={"Authorization": token},
+        data=data
+    )
 
 def live():
     global result_dict
@@ -461,7 +465,7 @@ def live():
     http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "")
 
     queue = sys.argv[1]
-    prnum = sys.argv[2]
+    uid = sys.argv[2]
 
     last_update = 0
 
@@ -470,7 +474,7 @@ def live():
     nfailed = 0
 
     try:
-        post_status({"status" : "setting up build" }, prnum, [], "")
+        update_status({"status" : "setting up build" }, uid, [], "")
         while True:
             _list = Job.wait(queue, count=16)
             for _status in _list:
@@ -494,12 +498,12 @@ def live():
                             failed_jobs.append((None, "(%s more failed jobs)" % (nfailed - maxfailed)))
 
                 if _status.get("status", "") == "done":
-                    post_status(None, prnum, failed_jobs, http_root)
+                    update_status(None, uid, failed_jobs, http_root)
                     return
 
                 now = time.time()
                 if now - last_update > 0.5:
-                    post_status(_status, prnum, failed_jobs, http_root)
+                    update_status(_status, uid, failed_jobs, http_root)
                     last_update = now
 
 
@@ -509,7 +513,7 @@ def live():
 if __name__=="__main__":
     argc = len(sys.argv)
     if argc < 2 or argc > 3:
-        printf("error: %s <json-data>|<<queue-name> <pr-num>" % sys.argv[0], file=sys.stderr)
+        print("error: %s <json-data>|<queue-name> <job uid> <job token>" % sys.argv[0], file=sys.stderr)
         sys.exit(1)
 
     if argc == 2:

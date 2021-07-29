@@ -119,7 +119,7 @@ case "$ACTION" in
 
         REPORT_QUEUE="status::PR${CI_PULL_NR}:$(random)"
 
-        $BASEDIR/parse_result.py "$REPORT_QUEUE" $CI_PULL_NR &
+        $BASEDIR/parse_result.py "$REPORT_QUEUE" $CI_JOB_UID $CI_JOB_TOKEN &
         REPORTER=$!
 
         set +e
