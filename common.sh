@@ -109,5 +109,5 @@ build_commit() {
         cat output.txt
         echo ""
         [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
-    } | ansi2html -s solarized -u > ${output_dir}/output.html
+    } | /usr/bin/ansi2html > ${output_dir}/output.html
 }
