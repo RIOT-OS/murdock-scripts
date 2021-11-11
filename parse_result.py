@@ -426,7 +426,7 @@ def dump_to_file(path, data):
         f.write(data)
     os.rename(path + ".tmp", path)
 
-def update_status(data, uid, failed_jobs, http_root):
+def update_status(data, uid, failed_jobs, failed_builds, failed_tests, http_root):
     status = {}
     # copy expected (but optional) fields that are in data
     if data is not None:
@@ -437,12 +437,27 @@ def update_status(data, uid, failed_jobs, http_root):
     # "href" [optional]) field
     if failed_jobs:
         status["failed_jobs"] = []
-        for _tuple in failed_jobs:
-            filename, jobname = _tuple
+        for filename, jobname in failed_jobs:
             failed_job = {"name": jobname}
             if filename:
                 failed_job["href"] = os.path.join(http_root, filename)
             status["failed_jobs"].append(failed_job)
+
+    if failed_builds:
+        status["failed_builds"] = []
+        for filename, jobname in failed_builds:
+            failed_build = {"name": jobname.replace("compile/", "")}
+            if filename:
+                failed_build["href"] = os.path.join(http_root, filename)
+            status["failed_builds"].append(failed_build)
+
+    if failed_tests:
+        status["failed_tests"] = []
+        for filename, jobname in failed_tests:
+            failed_test = {"name": jobname.replace("run_test/", "")}
+            if filename:
+                failed_test["href"] = os.path.join(http_root, filename)
+            status["failed_tests"].append(failed_test)
 
     do_put_status(status, uid)
 
@@ -469,12 +484,18 @@ def live():
 
     last_update = 0
 
-    maxfailed = 20
+    maxfailed_jobs = 20
+    maxfailed_builds = 20
+    maxfailed_tests = 20
     failed_jobs = []
-    nfailed = 0
+    failed_builds = []
+    failed_tests = []
+    nfailed_jobs = 0
+    nfailed_builds = 0
+    nfailed_tests = 0
 
     try:
-        update_status({"status" : "setting up build" }, uid, [], "")
+        update_status({"status" : "setting up build" }, uid, [], [], [], "")
         while True:
             _list = Job.wait(queue, count=16)
             for _status in _list:
@@ -484,26 +505,41 @@ def live():
                     filename = save_job_result(job)
 
                     if filename and not has_passed(job):
-                        nfailed += 1
                         jobname = job_name(job)
                         if jobname == "static_tests":
+                            nfailed_jobs += 1
                             failed_jobs = [ (filename, jobname) ] + failed_jobs
 
-                        elif nfailed <= maxfailed:
-                            failed_jobs.append((filename, job_name(job)))
+                        elif jobname.startswith("compile/"):
+                            nfailed_builds += 1
+                            if nfailed_builds <= maxfailed_builds:
+                                failed_builds.append((filename, job_name(job)))
 
-                        failed_jobs = failed_jobs[:maxfailed]
+                        elif jobname.startswith("run_test/"):
+                            nfailed_tests += 1
+                            if nfailed_tests <= maxfailed_tests:
+                                failed_tests.append((filename, job_name(job)))
 
-                        if nfailed > maxfailed:
-                            failed_jobs.append((None, "(%s more failed jobs)" % (nfailed - maxfailed)))
+                        failed_jobs = failed_jobs[:maxfailed_jobs]
+                        failed_builds = failed_builds[:maxfailed_builds]
+                        failed_tests = failed_tests[:maxfailed_tests]
+
+                        if nfailed_jobs > maxfailed_jobs:
+                            failed_jobs.append((None, "(%s more failed jobs)" % (nfailed_jobs - maxfailed_jobs)))
+
+                        if nfailed_builds > maxfailed_builds:
+                            failed_builds.append((None, "(%s more build failures)" % (nfailed_builds - maxfailed_builds)))
+
+                        if nfailed_tests > maxfailed_tests:
+                            failed_tests.append((None, "(%s more test failures)" % (nfailed_tests - maxfailed_tests)))
 
                 if _status.get("status", "") == "done":
-                    update_status(None, uid, failed_jobs, http_root)
+                    update_status(None, uid, failed_jobs, failed_builds, failed_tests, http_root)
                     return
 
                 now = time.time()
                 if now - last_update > 0.5:
-                    update_status(_status, uid, failed_jobs, http_root)
+                    update_status(_status, uid, failed_jobs, failed_builds, failed_tests, http_root)
                     last_update = now
 
 
