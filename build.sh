@@ -7,7 +7,6 @@ MERGE_COMMIT_REPO="murdock-ci/RIOT"
 BASEDIR="$(dirname $(realpath $0))"
 
 . "${BASEDIR}/common.sh"
-. "${BASEDIR}/github.sh"
 
 [ -f "${BASEDIR}/local.sh" ] && . "${BASEDIR}/local.sh"
 
@@ -106,8 +105,6 @@ case "$ACTION" in
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
 
         echo "---- using merge commit SHA1=${CI_MERGE_COMMIT}"
-
-        update_CI_PULL_LABELS $(github_url_to_repo $CI_BASE_REPO) "$CI_PULL_NR"
 
         dwqc "test -x .murdock" || {
             echo "PR does not contain .murdock build script, please rebase!"
