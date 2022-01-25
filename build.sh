@@ -53,7 +53,7 @@ create_merge_commit() {
 
         echo "--- adding remotes"
         git -C $tmpdir remote add cache_repo "git@github.com:$MERGE_COMMIT_REPO"
-        git -C $tmpdir remote add pr_repo "$pr_repo"
+        git -C $tmpdir remote add pr_repo "https://github.com/$pr_repo"
 
         echo "--- checking out merge branch"
         git -C $tmpdir checkout -B $MERGE_BRANCH
