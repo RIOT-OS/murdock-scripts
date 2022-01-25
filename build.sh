@@ -34,9 +34,8 @@ create_merge_commit() {
     local base_repo="$1"
     local base_head="$2"
     local pr_repo="$3"
-    local pr_branch="$4"
-    local pr_head="$5"
-    local pr_num="$6"
+    local pr_head="$4"
+    local pr_num="$5"
 
     echo "--- creating merge commit ..."
     echo "-- merging $pr_head into $base_head"
@@ -57,8 +56,8 @@ create_merge_commit() {
 
         echo "--- checking out merge branch"
         git -C $tmpdir checkout -B $MERGE_BRANCH
-        echo "--- fetching $pr_branch"
-        git -C $tmpdir fetch -f pr_repo $pr_branch
+        echo "--- fetching $pr_head"
+        git -C $tmpdir fetch -f pr_repo $pr_head
         echo "--- merging $pr_head into $base_head"
         git -C $tmpdir merge --no-rerere-autoupdate --no-edit --no-ff $pr_head || {
             echo "--- aborting merge"
@@ -99,7 +98,7 @@ case "$ACTION" in
             fi
         fi
 
-        create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_BRANCH $CI_PULL_COMMIT $CI_PULL_NR
+        create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_COMMIT $CI_PULL_NR
 
         export DWQ_REPO="https://github.com/$MERGE_COMMIT_REPO"
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
