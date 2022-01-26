@@ -2,7 +2,8 @@
 
 ACTION="$1"
 
-MERGE_COMMIT_REPO="murdock-ci/RIOT"
+CI_GIT_URL="ssh://git@gitea.riot-labs.de:3333"
+MERGE_COMMIT_REPO="riot-ci/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
 
@@ -51,7 +52,7 @@ create_merge_commit() {
         git -C $tmpdir checkout
 
         echo "--- adding remotes"
-        git -C $tmpdir remote add cache_repo "git@github.com:$MERGE_COMMIT_REPO"
+        git -C $tmpdir remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
         git -C $tmpdir remote add pr_repo "https://github.com/$pr_repo"
 
         echo "--- checking out merge branch"
