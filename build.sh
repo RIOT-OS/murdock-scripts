@@ -84,7 +84,7 @@ create_merge_commit() {
 }
 
 case "$ACTION" in
-    build)
+    run)
         # clean possible output
         rm -Rf output/
         rm -f prstatus.html.snip result.json
@@ -147,7 +147,7 @@ case "$ACTION" in
 
         exit $RES
         ;;
-    post_build)
+    finalize)
         {
             cat output.txt
             echo ""
