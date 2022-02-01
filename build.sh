@@ -2,7 +2,7 @@
 
 ACTION="$1"
 
-CI_GIT_URL="ssh://git@gitea.riot-labs.de:3333"
+CI_GIT_URL="ssh://git@gitea.riot-labs.de:22222"
 MERGE_COMMIT_REPO="riot-ci/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
