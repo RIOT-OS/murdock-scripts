@@ -153,6 +153,7 @@ case "$ACTION" in
             echo ""
             [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
         } | /usr/bin/ansi2html > output.html
+        ${BASEDIR}/process_result.py
         ;;
     *)
         echo "$0: unhandled action $ACTION"
