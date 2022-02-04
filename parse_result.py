@@ -475,7 +475,8 @@ def do_put_status(status, uid):
 
 def live():
     global result_dict
-    Disque.connect(["localhost:7711"])
+    disque_url = os.environ.get("DWQ_DISQUE_URL", "localhost:7711")
+    Disque.connect([disque_url])
 
     http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "")
 
