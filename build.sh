@@ -3,6 +3,8 @@
 ACTION="$1"
 
 CI_GIT_URL="ssh://git@gitea.riot-labs.de:22222"
+CI_GIT_URL_WORKER="https://gitea.riot-labs.de"
+
 MERGE_COMMIT_REPO="riot-ci/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
@@ -101,7 +103,7 @@ case "$ACTION" in
 
         create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_COMMIT $CI_PULL_NR
 
-        export DWQ_REPO="https://github.com/$MERGE_COMMIT_REPO"
+        export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
 
         echo "---- using merge commit SHA1=${CI_MERGE_COMMIT}"
