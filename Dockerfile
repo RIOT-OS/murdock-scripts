@@ -14,7 +14,7 @@ RUN apt-get update && \
 
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install \
-        dwq==0.0.51 \
+        dwq==0.0.52 \
         orjson==3.6.6
 
 # get git-cache directly from github
