@@ -4,6 +4,7 @@ import os
 import time
 import re
 import statistics
+import sys
 
 import orjson
 
@@ -149,11 +150,12 @@ def create_application_files(job_type, all_results):
 
 
 def main():
-    if os.path.exists(RESULT_JSON_FILE):
-        with open(RESULT_JSON_FILE) as f:
-            results = orjson.loads(f.read())
-    else:
-        results = []
+    if not os.path.exists(RESULT_JSON_FILE):
+        print(f"No {RESULT_JSON_FILE} file found, aborting")
+        sys.exit(1)
+
+    with open(RESULT_JSON_FILE) as f:
+        results = orjson.loads(f.read())
 
     # Extract and reformat all result data
     results_parsed = parse_result(results)
