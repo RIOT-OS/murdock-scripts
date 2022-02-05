@@ -101,6 +101,9 @@ case "$ACTION" in
             fi
         fi
 
+        STATUS='{"status" : {"status": "Fetching code"}}'
+        /usr/bin/curl -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT ${CI_BASE_URL}/jobs/running/${CI_JOB_UID}/status > /dev/null
+
         create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_COMMIT $CI_PULL_NR
 
         export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
@@ -150,12 +153,16 @@ case "$ACTION" in
         exit $RES
         ;;
     finalize)
+        echo "--- Processing results"
+        STATUS='{"status" : {"status": "Processing results"}}'
+        /usr/bin/curl -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT ${CI_BASE_URL}/jobs/running/${CI_JOB_UID}/status > /dev/null
         {
             cat output.txt
             echo ""
             [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
         } | /usr/bin/ansi2html > output.html
         ${BASEDIR}/process_result.py
+        echo "--- Done"
         ;;
     *)
         echo "$0: unhandled action $ACTION"
