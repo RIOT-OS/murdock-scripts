@@ -6,6 +6,7 @@ import sys
 import os
 import requests
 import time
+import signal
 
 from string import Template
 from dwq import Disque, Job
@@ -13,6 +14,12 @@ from dwq import Disque, Job
 result_dict = {}
 
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), "utf-8", "replace")
+
+
+def signal_handler(signal, frame):
+    print(f"Exiting with signal {signal}: {frame}")
+    sys.exit(0)
+
 
 def nicetime(time, tens=True):
     secs = round(time, ndigits=1)
@@ -495,57 +502,58 @@ def live():
     nfailed_builds = 0
     nfailed_tests = 0
 
-    try:
-        update_status({"status" : "setting up build" }, uid, [], [], [], "")
-        while True:
-            _list = Job.wait(queue, count=16)
-            for _status in _list:
-                job = _status.get('job')
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGKILL, signal_handler)
 
-                if job:
-                    filename = save_job_result(job)
+    update_status({"status" : "setting up build" }, uid, [], [], [], "")
 
-                    if filename and not has_passed(job):
-                        jobname = job_name(job)
-                        if jobname == "static_tests":
-                            nfailed_jobs += 1
-                            failed_jobs = [ (filename, jobname) ] + failed_jobs
+    while True:
+        _list = Job.wait(queue, count=16)
+        for _status in _list:
+            job = _status.get('job')
 
-                        elif jobname.startswith("compile/"):
-                            nfailed_builds += 1
-                            if nfailed_builds <= maxfailed_builds:
-                                failed_builds.append((filename, job_name(job)))
+            if job:
+                filename = save_job_result(job)
 
-                        elif jobname.startswith("run_test/"):
-                            nfailed_tests += 1
-                            if nfailed_tests <= maxfailed_tests:
-                                failed_tests.append((filename, job_name(job)))
+                if filename and not has_passed(job):
+                    jobname = job_name(job)
+                    if jobname == "static_tests":
+                        nfailed_jobs += 1
+                        failed_jobs = [ (filename, jobname) ] + failed_jobs
 
-                        failed_jobs = failed_jobs[:maxfailed_jobs]
-                        failed_builds = failed_builds[:maxfailed_builds]
-                        failed_tests = failed_tests[:maxfailed_tests]
+                    elif jobname.startswith("compile/"):
+                        nfailed_builds += 1
+                        if nfailed_builds <= maxfailed_builds:
+                            failed_builds.append((filename, job_name(job)))
 
-                        if nfailed_jobs > maxfailed_jobs:
-                            failed_jobs.append((None, "(%s more failed jobs)" % (nfailed_jobs - maxfailed_jobs)))
+                    elif jobname.startswith("run_test/"):
+                        nfailed_tests += 1
+                        if nfailed_tests <= maxfailed_tests:
+                            failed_tests.append((filename, job_name(job)))
 
-                        if nfailed_builds > maxfailed_builds:
-                            failed_builds.append((None, "(%s more build failures)" % (nfailed_builds - maxfailed_builds)))
+                    failed_jobs = failed_jobs[:maxfailed_jobs]
+                    failed_builds = failed_builds[:maxfailed_builds]
+                    failed_tests = failed_tests[:maxfailed_tests]
 
-                        if nfailed_tests > maxfailed_tests:
-                            failed_tests.append((None, "(%s more test failures)" % (nfailed_tests - maxfailed_tests)))
+                    if nfailed_jobs > maxfailed_jobs:
+                        failed_jobs.append((None, "(%s more failed jobs)" % (nfailed_jobs - maxfailed_jobs)))
 
-                if _status.get("status", "") == "done":
-                    update_status(None, uid, failed_jobs, failed_builds, failed_tests, http_root)
-                    return
+                    if nfailed_builds > maxfailed_builds:
+                        failed_builds.append((None, "(%s more build failures)" % (nfailed_builds - maxfailed_builds)))
 
-                now = time.time()
-                if now - last_update > 0.5:
-                    update_status(_status, uid, failed_jobs, failed_builds, failed_tests, http_root)
-                    last_update = now
+                    if nfailed_tests > maxfailed_tests:
+                        failed_tests.append((None, "(%s more test failures)" % (nfailed_tests - maxfailed_tests)))
 
+            if _status.get("status", "") == "done":
+                update_status(None, uid, failed_jobs, failed_builds, failed_tests, http_root)
+                return
 
-    except KeyboardInterrupt:
-        pass
+            now = time.time()
+            if now - last_update > 0.5:
+                update_status(_status, uid, failed_jobs, failed_builds, failed_tests, http_root)
+                last_update = now
+
 
 if __name__=="__main__":
     argc = len(sys.argv)
