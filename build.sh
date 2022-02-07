@@ -102,7 +102,7 @@ case "$ACTION" in
         fi
 
         STATUS='{"status" : {"status": "Fetching code"}}'
-        /usr/bin/curl -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
+        /usr/bin/curl -s -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
 
         create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_COMMIT $CI_PULL_NR
 
@@ -155,7 +155,7 @@ case "$ACTION" in
     finalize)
         echo "--- Processing results"
         STATUS='{"status" : {"status": "Processing results"}}'
-        /usr/bin/curl -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
+        /usr/bin/curl -s -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
         {
             cat output.txt
             echo ""
