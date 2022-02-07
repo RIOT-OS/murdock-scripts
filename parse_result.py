@@ -438,6 +438,7 @@ def dump_to_file(path, data):
     os.rename(path + ".tmp", path)
 
 def update_status(data, uid, failed_jobs, failed_builds, failed_tests, http_root):
+    http_root = os.path.join("/", http_root)
     status = {}
     # copy expected (but optional) fields that are in data
     if data is not None:
