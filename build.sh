@@ -108,6 +108,7 @@ case "$ACTION" in
 
         export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
+        export CI_BUILD_HTTP_ROOT=${CI_BUILD_HTTP_ROOT}
 
         echo "---- using merge commit SHA1=${CI_MERGE_COMMIT}"
 
