@@ -21,6 +21,11 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGKILL, signal_handler)
+
+
 def nicetime(time, tens=True):
     secs = round(time, ndigits=1)
     minutes = secs/60
@@ -501,10 +506,6 @@ def live():
     nfailed_jobs = 0
     nfailed_builds = 0
     nfailed_tests = 0
-
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGKILL, signal_handler)
 
     update_status({"status" : "setting up build" }, uid, [], [], [], "")
 
