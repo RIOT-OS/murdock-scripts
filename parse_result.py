@@ -478,7 +478,7 @@ def live():
     disque_url = os.environ.get("DWQ_DISQUE_URL", "localhost:7711")
     Disque.connect([disque_url])
 
-    http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "")
+    http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "/")
 
     queue = sys.argv[1]
     uid = sys.argv[2]
