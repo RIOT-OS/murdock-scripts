@@ -156,11 +156,6 @@ case "$ACTION" in
         echo "--- Processing results"
         STATUS='{"status" : {"status": "Processing results"}}'
         /usr/bin/curl -s -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
-        {
-            cat output.txt
-            echo ""
-            [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
-        } | /usr/bin/ansi2html > output.html
         ${BASEDIR}/process_result.py
         echo "--- Done"
         ;;
