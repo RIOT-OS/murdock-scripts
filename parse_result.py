@@ -23,7 +23,6 @@ def signal_handler(signal, frame):
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGKILL, signal_handler)
 
 
 def nicetime(time, tens=True):
