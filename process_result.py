@@ -74,6 +74,8 @@ def parse_result(jobs):
         application: [] for application in tests
     }
     workers_runtimes = {}
+    workers_failed = {}
+    workers_passed = {}
     builds_count = 0
     build_success_count = 0
     build_failures_count = 0
@@ -85,6 +87,10 @@ def parse_result(jobs):
             continue
         application = job["application"]
         worker = job["worker"]
+        if worker not in workers_failed:
+            workers_failed.update({worker: 0})
+        if worker not in workers_passed:
+            workers_passed.update({worker: 0})
         if job["type"] == "compile":
             builds_count += 1
             builds[application].append(job)
@@ -94,9 +100,11 @@ def parse_result(jobs):
             if job["status"] is False:
                 build_failures_count += 1
                 build_failures[application].append(job)
+                workers_failed[worker] += 1
             else:
                 build_success_count += 1
                 build_success[application].append(job)
+                workers_passed[worker] += 1
             continue
         if job["type"] == "run_test":
             tests_count += 1
@@ -104,9 +112,11 @@ def parse_result(jobs):
             if job["status"] is False:
                 test_failures_count += 1
                 test_failures[application].append(job)
+                workers_failed[worker] += 1
             else:
                 test_success_count += 1
                 test_success[application].append(job)
+                workers_passed[worker] += 1
 
     total_build_time = nicetime(sum([
         sum(runtimes) for _, runtimes in workers_runtimes.items()
@@ -128,6 +138,8 @@ def parse_result(jobs):
         "test_failures_count": test_failures_count,
         "workers": sorted(workers_runtimes.keys()),
         "worker_runtimes": workers_runtimes,
+        "workers_failed": workers_failed,
+        "workers_passed": workers_passed,
         "total_time": total_build_time,
     }
 
@@ -256,6 +268,8 @@ def main():
                 "total_cpu_time": sum(
                     results_parsed["worker_runtimes"][worker]
                 ),
+                "jobs_failed": results_parsed["workers_failed"][worker],
+                "jobs_passed": results_parsed["workers_passed"][worker],
                 "jobs_count": len(results_parsed["worker_runtimes"][worker]),
             }
             for worker in results_parsed["workers"]
