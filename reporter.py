@@ -70,24 +70,40 @@ def update_status(data, uid, failed_jobs, failed_builds, failed_tests, http_root
     # "href" [optional]) field
     if failed_jobs:
         status["failed_jobs"] = []
-        for filename, jobname in failed_jobs:
-            failed_job = {"name": jobname}
+        for filename, jobname, _, _, worker, runtime in failed_jobs:
+            failed_job = {
+                "name": jobname,
+                "worker": worker,
+                "runtime": runtime,
+            }
             if filename:
                 failed_job["href"] = os.path.join(http_root, filename)
             status["failed_jobs"].append(failed_job)
 
     if failed_builds:
         status["failed_builds"] = []
-        for filename, jobname in failed_builds:
-            failed_build = {"name": jobname.replace("compile/", "")}
+        for filename, jobname, board, toolchain, worker, runtime  in failed_builds:
+            failed_build = {
+                "name": jobname.replace("compile/", ""),
+                "board": board,
+                "toolchain": toolchain,
+                "worker": worker,
+                "runtime": runtime,
+            }
             if filename:
                 failed_build["href"] = os.path.join(http_root, filename)
             status["failed_builds"].append(failed_build)
 
     if failed_tests:
         status["failed_tests"] = []
-        for filename, jobname in failed_tests:
-            failed_test = {"name": jobname.replace("run_test/", "")}
+        for filename, jobname, board, toolchain, worker, runtime  in failed_tests:
+            failed_test = {
+                "name": jobname.replace("run_test/", ""),
+                "board": board,
+                "toolchain": toolchain,
+                "worker": worker,
+                "runtime": runtime,
+            }
             if filename:
                 failed_test["href"] = os.path.join(http_root, filename)
             status["failed_tests"].append(failed_test)
@@ -141,19 +157,27 @@ def main():
 
                 if filename and not has_passed(job):
                     jobname = job_name(job)
+                    board = job["board"]
+                    toolchain = job["toolchain"]
+                    worker = job["worker"]
+                    runtime = job["runtime"]
                     if jobname == "static_tests":
                         nfailed_jobs += 1
-                        failed_jobs = [ (filename, jobname) ] + failed_jobs
+                        failed_jobs = [(filename, jobname, "", "", worker, runtime)] + failed_jobs
 
                     elif jobname.startswith("compile/"):
                         nfailed_builds += 1
                         if nfailed_builds <= maxfailed_builds:
-                            failed_builds.append((filename, job_name(job)))
+                            failed_builds.append(
+                                (filename, job_name(job), board, toolchain, worker, runtime)
+                            )
 
                     elif jobname.startswith("run_test/"):
                         nfailed_tests += 1
                         if nfailed_tests <= maxfailed_tests:
-                            failed_tests.append((filename, job_name(job)))
+                            failed_tests.append(
+                                (filename, job_name(job), board, toolchain, worker, runtime)
+                            )
 
                     failed_jobs = failed_jobs[:maxfailed_jobs]
                     failed_builds = failed_builds[:maxfailed_builds]
