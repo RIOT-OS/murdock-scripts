@@ -13,6 +13,21 @@ SAVE_JOB_RESULTS = int(os.getenv("SAVE_JOB_RESULTS", "0")) == 1
 RESULT_JSON_FILE = "result.json"
 
 
+def nicetime(seconds):
+    seconds = abs(int(seconds))
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days > 0:
+        return f"{days:02d}d {hours:02d}h {minutes:02d}m {seconds:02d}s"
+    elif hours > 0:
+        return f"{hours:02d}h {minutes:02d}m {seconds:02d}s"
+    elif minutes > 0:
+        return f"{minutes:02d}m {seconds:02d}s"
+    else:
+        return f"{seconds:02d}s"
+
+
 def parse_job(job):
     result = {}
     result["status"] = job["result"]["status"] in { 0, "0", "pass" }
@@ -93,7 +108,7 @@ def parse_result(jobs):
                 test_success_count += 1
                 test_success[application].append(job)
 
-    total_build_time = time.gmtime(sum([
+    total_build_time = nicetime(sum([
         sum(runtimes) for _, runtimes in workers_runtimes.items()
     ]))
 
@@ -113,7 +128,7 @@ def parse_result(jobs):
         "test_failures_count": test_failures_count,
         "workers": sorted(workers_runtimes.keys()),
         "worker_runtimes": workers_runtimes,
-        "total_time": time.strftime(r"%dd %Hh %Mm %Ss", total_build_time),
+        "total_time": total_build_time,
     }
 
 
