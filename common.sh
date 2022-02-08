@@ -106,8 +106,6 @@ build_commit() {
     build $repo $branch $commit $output_dir | tee $output_dir/output.txt && \
     {
         cd $output_dir
-        cat output.txt
-        echo ""
-        [ -s result.json ] && HTML=1 ${BASEDIR}/parse_result.py result.json
-    } | /usr/bin/ansi2html > ${output_dir}/output.html
+        ${BASEDIR}/process_result.py
+    }
 }
