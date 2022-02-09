@@ -5,6 +5,7 @@ ACTION="$1"
 CI_GIT_URL="ssh://git@gitea.riot-labs.de:22222"
 CI_GIT_URL_WORKER="https://gitea.riot-labs.de"
 
+RIOT_REPO="https://github.com/RIOT-OS/RIOT"
 MERGE_COMMIT_REPO="riot-ci/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
@@ -94,14 +95,14 @@ case "$ACTION" in
         STATUS='{"status" : {"status": "Fetching code"}}'
         /usr/bin/curl -s -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
 
-        if [ -n "${CI_BUILD_COMMIT}" ]
-        then
+        if [ -n "${CI_BUILD_COMMIT}" ]; then
             # Building a branch or tag
             export NIGHTLY=1 STATIC_TESTS=0
-            echo "-- Building ${CI_BUILD_COMMIT} of ${CI_BUILD_REF}"
+            echo "-- Building ${CI_BUILD_REF} head: ${CI_BUILD_COMMIT}..."
 
-            export DWQ_REPO="https://github.com/RIOT-OS/RIOT"
+            export DWQ_REPO="${RIOT_REPO}"
             export DWQ_COMMIT="${CI_BUILD_COMMIT}"
+
             export DWQ_ENV="-E NIGHTLY -E STATIC_TESTS"
 
             REPORT_QUEUE="status::${CI_BUILD_REF}${CI_BUILD_COMMIT}:$(random)"
