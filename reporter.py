@@ -70,12 +70,8 @@ def update_status(data, uid, failed_jobs, failed_builds, failed_tests, http_root
     # "href" [optional]) field
     if failed_jobs:
         status["failed_jobs"] = []
-        for filename, jobname, _, _, worker, runtime in failed_jobs:
-            failed_job = {
-                "name": jobname,
-                "worker": worker,
-                "runtime": runtime,
-            }
+        for filename, jobname, _, _, _, _ in failed_jobs:
+            failed_job = {"name": jobname}
             if filename:
                 failed_job["href"] = os.path.join(http_root, filename)
             status["failed_jobs"].append(failed_job)
@@ -159,8 +155,8 @@ def main():
                     jobname = job_name(job)
                     board = job["board"] if "board" in job else ""
                     toolchain = job["toolchain"] if "toolchain" in job else ""
-                    worker = job["worker"]
-                    runtime = job["runtime"]
+                    worker = job["worker"] if "worker" in job else ""
+                    runtime = job["runtime"] if "runtime" in job else ""
                     if jobname == "static_tests":
                         nfailed_jobs += 1
                         failed_jobs = [(filename, jobname, "", "", worker, runtime)] + failed_jobs
