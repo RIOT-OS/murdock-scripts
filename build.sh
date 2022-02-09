@@ -153,8 +153,6 @@ case "$ACTION" in
         exit $RES
         ;;
     finalize)
-        STATUS='{"status" : {"status": "Processing results"}}'
-        /usr/bin/curl -s -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
         python ${BASEDIR}/process_result.py
         ;;
     *)
