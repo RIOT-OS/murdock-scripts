@@ -121,7 +121,7 @@ case "$ACTION" in
 
         REPORT_QUEUE="status::PR${CI_PULL_NR}:$(random)"
 
-        $BASEDIR/reporter.py "$REPORT_QUEUE" $CI_JOB_UID $CI_JOB_TOKEN &
+        python $BASEDIR/reporter.py "$REPORT_QUEUE" $CI_JOB_UID $CI_JOB_TOKEN &
         REPORTER=$!
 
         set +e
@@ -153,11 +153,9 @@ case "$ACTION" in
         exit $RES
         ;;
     finalize)
-        echo "--- Processing results"
         STATUS='{"status" : {"status": "Processing results"}}'
         /usr/bin/curl -s -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
-        ${BASEDIR}/process_result.py
-        echo "--- Done"
+        python ${BASEDIR}/process_result.py
         ;;
     *)
         echo "$0: unhandled action $ACTION"

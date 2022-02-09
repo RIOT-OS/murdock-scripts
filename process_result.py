@@ -1,8 +1,4 @@
-#!/usr/local/bin/python
-
 import os
-import time
-import re
 import statistics
 import sys
 
@@ -10,24 +6,11 @@ from string import Template
 
 import orjson
 
+from common import parse_job, nicetime
+
 
 SAVE_JOB_RESULTS = int(os.getenv("SAVE_JOB_RESULTS", "0")) == 1
 RESULT_JSON_FILE = "result.json"
-
-
-def nicetime(seconds):
-    seconds = abs(int(seconds))
-    days, seconds = divmod(seconds, 86400)
-    hours, seconds = divmod(seconds, 3600)
-    minutes, seconds = divmod(seconds, 60)
-    if days > 0:
-        return f"{days:02d}d {hours:02d}h {minutes:02d}m {seconds:02d}s"
-    elif hours > 0:
-        return f"{hours:02d}h {minutes:02d}m {seconds:02d}s"
-    elif minutes > 0:
-        return f"{minutes:02d}m {seconds:02d}s"
-    else:
-        return f"{seconds:02d}s"
 
 
 def create_badge(filename, status="failed"):
@@ -61,33 +44,10 @@ def create_badge(filename, status="failed"):
         badge_svg.write(badge.substitute(status=status))
 
 
-def parse_job(job):
-    result = {}
-    result["status"] = job["result"]["status"] in { 0, "0", "pass" }
-    result["worker"] = job["result"]["worker"]
-    result["runtime"] = float(job["result"]["runtime"])
-    result["output"] = job["result"]["output"]
-    result["name"] = os.path.join(
-        *job["result"]["body"]["command"].split()[1:]
-    )
-    match = re.match(
-        r"./.murdock ([a-z_]+) ([a-zA-Z0-9/\-_]+) ([a-zA-Z0-9_\-]+):([a-z]+)",
-        job["result"]["body"]["command"]
-    )
-    if match is not None:
-        result["type"] = match.group(1)
-        result["application"] = match.group(2)
-        result["board"] = match.group(3)
-        result["toolchain"] = match.group(4)
-    else:
-        result["type"] = result["name"]
-    return result
-
-
 def parse_result(jobs):
     jobs = sorted(
-            [parse_job(job) for job in jobs], key=lambda job: job["name"]
-        )
+        [parse_job(job) for job in jobs], key=lambda job: job["name"]
+    )
     builds = {
         job["application"]: [] for job in jobs if job["type"] == "compile"
     }
