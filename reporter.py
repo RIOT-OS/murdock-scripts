@@ -157,8 +157,8 @@ def main():
 
                 if filename and not has_passed(job):
                     jobname = job_name(job)
-                    board = job["board"]
-                    toolchain = job["toolchain"]
+                    board = job["board"] if "board" in job else ""
+                    toolchain = job["toolchain"] if "toolchain" in job else ""
                     worker = job["worker"]
                     runtime = job["runtime"]
                     if jobname == "static_tests":
