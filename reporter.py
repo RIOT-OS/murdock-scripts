@@ -29,7 +29,7 @@ def save_job_result(job):
     if filename:
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, "w") as f:
-            f.write(job["result"]["output"])
+            f.write(job["output"])
         return filename
 
 
@@ -113,16 +113,16 @@ def main():
     while True:
         _list = Job.wait(queue, count=16)
         for _status in _list:
-            job = _status.get('job')
+            job_raw = _status.get('job')
 
-            if job:
-                result = parse_job(job)
-                filename = save_job_result(result)
+            if job_raw:
+                job = parse_job(job_raw)
+                filename = save_job_result(job)
 
-                if filename and result["status"] is False:
-                    jobname = result["name"]
-                    worker = result["worker"]
-                    runtime = result["runtime"]
+                if filename and job["status"] is False:
+                    jobname = job["name"]
+                    worker = job["worker"]
+                    runtime = job["runtime"]
                     if jobname == "static_tests":
                         nfailed_jobs += 1
                         failed_jobs.append(jobname)
@@ -131,14 +131,14 @@ def main():
                         nfailed_builds += 1
                         if nfailed_builds <= maxfailed_builds:
                             failed_builds.append(
-                                (result["application"], result["board"], result["toolchain"], worker, runtime)
+                                (job["application"], job["board"], job["toolchain"], worker, runtime)
                             )
 
                     elif jobname.startswith("run_test/"):
                         nfailed_tests += 1
                         if nfailed_tests <= maxfailed_tests:
                             failed_tests.append(
-                                (result["application"], result["board"], result["toolchain"], worker, runtime)
+                                (job["application"], job["board"], job["toolchain"], worker, runtime)
                             )
 
                     failed_jobs = failed_jobs[:maxfailed_jobs]
