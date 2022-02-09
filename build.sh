@@ -107,6 +107,7 @@ case "$ACTION" in
 
             REPORT_QUEUE="status::${CI_BUILD_REF}${CI_BUILD_COMMIT}:$(random)"
 
+            mkdir -p $(dirname ../${CI_BUILD_REF})
             rm -f ../${CI_BUILD_REF}
             ln -sf ${PWD} ../${CI_BUILD_REF}
         else # Building a PR
