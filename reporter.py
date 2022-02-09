@@ -108,7 +108,7 @@ def main():
     nfailed_builds = 0
     nfailed_tests = 0
 
-    update_status({"status" : "setting up build" }, uid, [], [], [], "")
+    update_status({"status" : "setting up build" }, uid, token, [], [], [], "")
 
     while True:
         _list = Job.wait(queue, count=16)
@@ -155,7 +155,7 @@ def main():
                         failed_tests.append((None, "(%s more test failures)" % (nfailed_tests - maxfailed_tests)))
 
             if _status.get("status", "") == "done":
-                update_status(None, uid, failed_jobs, failed_builds, failed_tests, http_root)
+                update_status(None, uid, token, failed_jobs, failed_builds, failed_tests, http_root)
                 return
 
             now = time.time()
