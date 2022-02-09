@@ -117,7 +117,7 @@ def main():
 
             if job:
                 result = parse_job(job)
-                filename = save_job_result(job)
+                filename = save_job_result(result)
 
                 if filename and result["status"] is False:
                     jobname = result["name"]
