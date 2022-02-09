@@ -147,17 +147,17 @@ def main():
         _list = Job.wait(queue, count=16)
         for _status in _list:
             job = _status.get('job')
-            print(job)
 
             if job:
                 filename = save_job_result(job)
+                result = job["result"]
 
                 if filename and not has_passed(job):
                     jobname = job_name(job)
-                    board = job["board"] if "board" in job else ""
-                    toolchain = job["toolchain"] if "toolchain" in job else ""
-                    worker = job["worker"] if "worker" in job else ""
-                    runtime = job["runtime"] if "runtime" in job else ""
+                    board = result["board"] if "board" in result else ""
+                    toolchain = result["toolchain"] if "toolchain" in result else ""
+                    worker = result["worker"]
+                    runtime = result["runtime"]
                     if jobname == "static_tests":
                         nfailed_jobs += 1
                         failed_jobs = [(filename, jobname, "", "", worker, runtime)] + failed_jobs
