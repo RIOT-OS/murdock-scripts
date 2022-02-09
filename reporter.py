@@ -147,6 +147,7 @@ def main():
         _list = Job.wait(queue, count=16)
         for _status in _list:
             job = _status.get('job')
+            print(job)
 
             if job:
                 filename = save_job_result(job)
