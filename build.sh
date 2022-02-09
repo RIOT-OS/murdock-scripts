@@ -106,6 +106,9 @@ case "$ACTION" in
             export DWQ_ENV="-E NIGHTLY -E STATIC_TESTS"
 
             REPORT_QUEUE="status::${CI_BUILD_REF}${CI_BUILD_COMMIT}:$(random)"
+
+            rm -f ../${CI_BUILD_REF}
+            ln -sf ${PWD} ../${CI_BUILD_REF}
         else # Building a PR
 
             echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
