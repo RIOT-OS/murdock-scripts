@@ -91,44 +91,58 @@ case "$ACTION" in
         rm -Rf output/
         rm -f prstatus.html.snip result.json
 
-        echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
-
-        ACTUAL_BASE_HEAD="$(gethead ${CI_BASE_REPO} ${CI_BASE_BRANCH})"
-        if [ -n "$ACTUAL_BASE_HEAD" ]; then
-            if [ "$ACTUAL_BASE_HEAD" != "$CI_BASE_COMMIT" ]; then
-                echo "-- HEAD of ${CI_BASE_BRANCH} is $ACTUAL_BASE_HEAD"
-                export CI_BASE_COMMIT="$ACTUAL_BASE_HEAD"
-            fi
-        fi
-
         STATUS='{"status" : {"status": "Fetching code"}}'
         /usr/bin/curl -s -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
 
-        create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_COMMIT $CI_PULL_NR
+        if [ -n "${CI_BUILD_COMMIT}"];
+        then
+            # Building a branch or tag
+            export NIGHTLY=1 STATIC_TESTS=0
+            echo "-- Building ${CI_BUILD_COMMIT} of ${CI_BUILD_REF}"
 
-        export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
-        export DWQ_COMMIT="${CI_MERGE_COMMIT}"
+            export DWQ_REPO="https://github.com/RIOT-OS/RIOT"
+            export DWQ_COMMIT="${CI_BUILD_COMMIT}"
+            export DWQ_ENV="-E NIGHTLY -E STATIC_TESTS"
 
-        echo "---- using merge commit SHA1=${CI_MERGE_COMMIT}"
+            REPORT_QUEUE="status::${CI_BUILD_REF}${CI_BUILD_COMMIT}:$(random)"
+        else # Building a PR
 
-        dwqc "test -x .murdock" || {
-            echo "PR does not contain .murdock build script, please rebase!"
-            rm -f result.json
-            exit 2
-        }
+            echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
 
-        echo "-- Building PR#$CI_PULL_NR $CI_PULL_URL head: $CI_PULL_COMMIT..."
+            ACTUAL_BASE_HEAD="$(gethead ${CI_BASE_REPO} ${CI_BASE_BRANCH})"
+            if [ -n "$ACTUAL_BASE_HEAD" ]; then
+                if [ "$ACTUAL_BASE_HEAD" != "$CI_BASE_COMMIT" ]; then
+                    echo "-- HEAD of ${CI_BASE_BRANCH} is $ACTUAL_BASE_HEAD"
+                    export CI_BASE_COMMIT="$ACTUAL_BASE_HEAD"
+                fi
+            fi
 
-        REPORT_QUEUE="status::PR${CI_PULL_NR}:$(random)"
+            create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_COMMIT $CI_PULL_NR
+
+            export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
+            export DWQ_COMMIT="${CI_MERGE_COMMIT}"
+
+            echo "---- using merge commit SHA1=${CI_MERGE_COMMIT}"
+
+            dwqc "test -x .murdock" || {
+                echo "PR does not contain .murdock build script, please rebase!"
+                rm -f result.json
+                exit 2
+            }
+
+            echo "-- Building PR#$CI_PULL_NR $CI_PULL_URL head: $CI_PULL_COMMIT..."
+
+            export DWQ_ENV="-E CI_BASE_REPO -E CI_BASE_BRANCH -E CI_PULL_REPO -E CI_PULL_COMMIT \
+                -E CI_PULL_NR -E CI_PULL_URL -E CI_PULL_LABELS -E CI_MERGE_COMMIT \
+                -E CI_BASE_COMMIT -E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
+
+            REPORT_QUEUE="status::PR${CI_PULL_NR}:$(random)"
+        fi
 
         python $BASEDIR/reporter.py "$REPORT_QUEUE" $CI_JOB_UID $CI_JOB_TOKEN &
         REPORTER=$!
 
         set +e
-
-        export DWQ_ENV="-E CI_BASE_REPO -E CI_BASE_BRANCH -E CI_PULL_REPO -E CI_PULL_COMMIT \
-            -E CI_PULL_NR -E CI_PULL_URL -E CI_PULL_LABELS -E CI_MERGE_COMMIT \
-            -E CI_BASE_COMMIT -E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
 
         get_jobs | dwqc ${DWQ_ENV} \
             --maxfail 500 \
