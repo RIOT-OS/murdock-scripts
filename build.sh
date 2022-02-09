@@ -94,7 +94,7 @@ case "$ACTION" in
         STATUS='{"status" : {"status": "Fetching code"}}'
         /usr/bin/curl -s -d "${STATUS}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
 
-        if [ -n "${CI_BUILD_COMMIT}"];
+        if [ -n "${CI_BUILD_COMMIT}" ]
         then
             # Building a branch or tag
             export NIGHTLY=1 STATIC_TESTS=0
