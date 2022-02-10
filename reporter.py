@@ -14,6 +14,8 @@ from common import parse_job
 
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), "utf-8", "replace")
 
+MURDOCK_API_BASE_URL = "http://localhost:8000"
+
 
 def signal_handler(signal, frame):
     print(f"Exiting with signal {signal}: {frame}")
@@ -33,8 +35,7 @@ def save_job_result(job):
         return filename
 
 
-def update_status(data, uid, token, failed_jobs, failed_builds, failed_tests, http_root):
-    http_root = os.path.join("/", http_root)
+def update_status(data, uid, token, failed_jobs, failed_builds, failed_tests):
     status = {}
     # copy expected (but optional) fields that are in data
     if data is not None:
@@ -75,7 +76,7 @@ def update_status(data, uid, token, failed_jobs, failed_builds, failed_tests, ht
 
     data = json.dumps({"uid" : uid, "status" : status})
     requests.put(
-        f'http://localhost:8000/jobs/running/{uid}/status',
+        f'{MURDOCK_API_BASE_URL}/jobs/running/{uid}/status',
         headers={"Authorization": token},
         data=data
     )
@@ -93,8 +94,6 @@ def main():
 
     disque_url = os.environ.get("DWQ_DISQUE_URL", "localhost:7711")
     Disque.connect([disque_url])
-
-    http_root = os.environ.get("CI_BUILD_HTTP_ROOT", "/")
 
     last_update = 0
 
@@ -155,12 +154,12 @@ def main():
                         failed_tests.append((None, "(%s more test failures)" % (nfailed_tests - maxfailed_tests)))
 
             if _status.get("status", "") == "done":
-                update_status(None, uid, token, failed_jobs, failed_builds, failed_tests, http_root)
+                update_status(None, uid, token, failed_jobs, failed_builds, failed_tests)
                 return
 
             now = time.time()
             if now - last_update > 0.5:
-                update_status(_status, uid, token, failed_jobs, failed_builds, failed_tests, http_root)
+                update_status(_status, uid, token, failed_jobs, failed_builds, failed_tests)
                 last_update = now
 
 
