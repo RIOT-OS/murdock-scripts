@@ -99,6 +99,8 @@ case "$ACTION" in
         : ${APPS:=}
         : ${BOARDS:=}
 
+        export APPS BOARDS
+
         if [ -n "${CI_BUILD_COMMIT}" ]; then
             if [ -n "${CI_BUILD_BRANCH}" ]; then
                 echo "-- Building branch ${CI_BUILD_BRANCH} head: ${CI_BUILD_COMMIT}..."
@@ -109,6 +111,7 @@ case "$ACTION" in
                 REPORT_QUEUE="status::${CI_BUILD_TAG}${CI_BUILD_COMMIT}:$(random)"
             fi
 
+            export NIGHTLY STATIC_TESTS
             export DWQ_REPO="${CI_BUILD_REPO}"
             export DWQ_COMMIT="${CI_BUILD_COMMIT}"
             export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
