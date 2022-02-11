@@ -31,6 +31,30 @@ retry() {
     return 1
 }
 
+_gethead() {
+    local gitdir="$1"
+    local url="$2"
+    local branch="${3:-master}"
+
+    git -C "$gitdir" ls-remote "$url" "refs/heads/${branch}" | cut -f1
+}
+
+gethead() {
+    local url="$1"
+    local branch="${2:-master}"
+
+    local gitdir="$(git rev-parse --show-toplevel 2>/dev/null)"
+    [ -z "$gitdir" ] && {
+        local tmpdir="$(mktemp -d)"
+        gitdir="$tmpdir"
+    }
+    _gethead "$gitdir" "$url" "$branch"
+
+    RES=$?
+    [ -n "$tmpdir" ] && rm -rf "$tmpdir"
+    return $RES
+}
+
 post_build() {
     echo "-- processing results ..."
     for script in $(find ${BASEDIR}/post-build.d -type f -executable); do
