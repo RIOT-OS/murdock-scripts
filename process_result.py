@@ -9,7 +9,6 @@ import orjson
 from common import parse_job, nicetime
 
 
-SAVE_JOB_RESULTS = int(os.getenv("SAVE_JOB_RESULTS", "0")) == 1
 RESULT_JSON_FILE = "result.json"
 
 
@@ -78,6 +77,7 @@ def parse_result(jobs):
     for job in jobs:
         if "application" not in job:
             continue
+        job.pop("output")
         application = job["application"]
         worker = job["worker"]
         if worker not in workers_failed:
@@ -137,14 +137,6 @@ def parse_result(jobs):
     }
 
 
-def store_job_output(job, output_path):
-    output_filename = os.path.join(
-        output_path, f"{job['board']}:{job['toolchain']}.txt"
-    )
-    with open(output_filename, "w") as f:
-        f.write(job["output"])
-
-
 def create_application_files(job_type, all_results):
     if job_type == "run_test":
         jobs = all_results["tests"]
@@ -164,9 +156,6 @@ def create_application_files(job_type, all_results):
         app_data_filename = os.path.join(output_path, "app.json")
         with open(app_data_filename, "w") as app_json:
             app_json.write(orjson.dumps(app_data).decode())
-        if SAVE_JOB_RESULTS:
-            for job in app_jobs:
-                store_job_output(job, output_path)
 
 
 def main():
