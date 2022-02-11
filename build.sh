@@ -9,8 +9,6 @@ MERGE_COMMIT_REPO="riot-ci/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
 
-. "${BASEDIR}/common.sh"
-
 [ -f "${BASEDIR}/local.sh" ] && . "${BASEDIR}/local.sh"
 
 random() {
@@ -31,6 +29,19 @@ retry() {
     done
 
     return 1
+}
+
+post_build() {
+    echo "-- processing results ..."
+    for script in $(find ${BASEDIR}/post-build.d -type f -executable); do
+        echo "- running script \"$script\""
+        python ${script} || true
+    done
+    echo "-- done processing results"
+}
+
+get_jobs() {
+    dwqc ${DWQ_ENV} './.murdock get_jobs'
 }
 
 create_merge_commit() {
