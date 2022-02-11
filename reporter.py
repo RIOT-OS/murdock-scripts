@@ -107,7 +107,7 @@ def main():
     nfailed_builds = 0
     nfailed_tests = 0
 
-    update_status({"status" : "setting up build" }, uid, token, [], [], [], "")
+    update_status({"status" : "setting up build" }, uid, token, [], [], [])
 
     while True:
         _list = Job.wait(queue, count=16)
