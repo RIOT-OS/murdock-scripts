@@ -105,20 +105,22 @@ case "$ACTION" in
             if [ -n "${CI_BUILD_BRANCH}" ]; then
                 echo "-- Building branch ${CI_BUILD_BRANCH} head: ${CI_BUILD_COMMIT}..."
                 REPORT_QUEUE="status::${CI_BUILD_BRANCH}${CI_BUILD_COMMIT}:$(random)"
+                mkdir -p $(dirname ../branches/)
+                rm -f ../branches/${CI_BUILD_BRANCH}
+                ln -s ${PWD} ../branches/${CI_BUILD_BRANCH}
             fi
             if [ -n "${CI_BUILD_TAG}" ]; then
                 echo "-- Building branch ${CI_BUILD_TAG} head: ${CI_BUILD_COMMIT}..."
                 REPORT_QUEUE="status::${CI_BUILD_TAG}${CI_BUILD_COMMIT}:$(random)"
+                mkdir -p $(dirname ../tags/)
+                rm -f ../tags/${CI_BUILD_TAG}
+                ln -s ${PWD} ../tags/${CI_BUILD_TAG}
             fi
 
             export NIGHTLY STATIC_TESTS
             export DWQ_REPO="${CI_BUILD_REPO}"
             export DWQ_COMMIT="${CI_BUILD_COMMIT}"
             export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
-
-            mkdir -p $(dirname ../${CI_BUILD_REF})
-            rm -f ../${CI_BUILD_REF}
-            ln -sf ${PWD} ../${CI_BUILD_REF}
         else # Building a PR
 
             echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
