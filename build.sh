@@ -139,23 +139,24 @@ case "$ACTION" in
         if [ -n "${CI_BUILD_COMMIT}" ]; then
             if [ -n "${CI_BUILD_BRANCH}" ]; then
                 echo "-- Building branch ${CI_BUILD_BRANCH} head: ${CI_BUILD_COMMIT}..."
-                REPORT_QUEUE="status::${CI_BUILD_BRANCH}${CI_BUILD_COMMIT}:$(random)"
+                QUEUE_NAME=${CI_BUILD_BRANCH}${CI_BUILD_COMMIT}
                 # Create a symlink to this job so it can be linked easily in an URL
                 mkdir -p ../branches
                 rm -f ../branches/${CI_BUILD_BRANCH}
                 ln -s ${PWD} ../branches/${CI_BUILD_BRANCH}
             elif [ -n "${CI_BUILD_TAG}" ]; then
                 echo "-- Building tag ${CI_BUILD_TAG} (${CI_BUILD_COMMIT})..."
-                REPORT_QUEUE="status::${CI_BUILD_TAG}${CI_BUILD_COMMIT}:$(random)"
+                QUEUE_NAME=${CI_BUILD_TAG}${CI_BUILD_COMMIT}
                 # Create a symlink to this job so it can be linked easily in an URL
                 mkdir -p ../tags
                 rm -f ../tags/${CI_BUILD_TAG}
                 ln -s ${PWD} ../tags/${CI_BUILD_TAG}
             else
                 echo "-- Building commit ${CI_BUILD_COMMIT}..."
-                REPORT_QUEUE="status::${CI_BUILD_COMMIT}:$(random)"
+                QUEUE_NAME=${CI_BUILD_COMMIT}
             fi
 
+            REPORT_QUEUE="status::${QUEUE_NAME}:$(random)"
             export NIGHTLY STATIC_TESTS
             export DWQ_REPO="${CI_BUILD_REPO}"
             export DWQ_COMMIT="${CI_BUILD_COMMIT}"
