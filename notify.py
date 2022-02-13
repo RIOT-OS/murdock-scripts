@@ -41,7 +41,8 @@ class MailNotifier(BaseModel):
             )
         except aiosmtplib.errors.SMTPAuthenticationError as exc:
             print(f"Cannot send email: {exc}")
-        print("Notification email sent")
+        else:
+            print("Notification email sent")
 
 
 class NotifiersModel(BaseModel):
