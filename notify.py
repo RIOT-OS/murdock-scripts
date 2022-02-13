@@ -15,34 +15,18 @@ from pydantic import BaseModel, error_wrappers
 CONFIGFILE_DEFAULT = os.path.join(os.path.dirname(__file__), "config.yml")
 
 
-class MailConfig(BaseModel):
-    mailto: str
+class MailNotifier(BaseModel):
+    mailto: List[str]
     server: str
     port: int
     use_tls: bool
     username: str
     password: str
 
-
-class NotifyConfig(BaseModel):
-    murdock_url: Optional[str] = "http://localhost:8000"
-    api_url: Optional[str] = "http://localhost:8000"
-    mail: Optional[MailConfig]
-
-
-class MailNotifier:
-    def __init__(self, config: MailConfig):
-        self.mailto = config.mailto
-        self.server = config.server
-        self.port = config.port
-        self.use_tls = config.use_tls
-        self.username = config.username
-        self.password = config.password
-
     async def notify(self, title: str, content: str):
         message = EmailMessage()
         message["From"] = "ci@riot-os.org"
-        message["To"] = self.mailto
+        message["To"] = ";".join(self.mailto)
         message["Subject"] = title
         message.set_content(content)
 
@@ -60,20 +44,43 @@ class MailNotifier:
         print("Notification email sent")
 
 
-async def fetch_finished_jobs(
-    branch, api_url: str, limit: Optional[int] = 5
-) -> List[dict]:
+class NotifiersModel(BaseModel):
+    mail: Optional[MailNotifier]
+
+
+class NotifyConfig(BaseModel):
+    murdock_url: Optional[str] = "http://localhost:8000"
+    api_url: Optional[str] = "http://localhost:8000"
+    notifiers: NotifiersModel
+
+
+async def fetch_running_job(uid, api_url: str) -> dict:
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            f"{api_url}/jobs/finished?limit={limit}&is_branch=1&branch={branch}",
+            f"{api_url}/job/{uid}",
             headers={
                 "Accept": "application/json",
             },
         )
         if response.status_code != 200:
+            print(f"Running job with uid '{uid}' not found, aborting")
             sys.exit(1)
 
         return response.json()
+
+
+async def fetch_finished_jobs(branch, api_url: str) -> List[dict]:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{api_url}/jobs/finished?limit=1&is_branch=1&branch={branch}",
+            headers={
+                "Accept": "application/json",
+            },
+        )
+        if response.status_code != 200:
+            return None
+
+        return response.json()[0]
 
 
 def parse_config_file(config_filename: str) -> NotifyConfig:
@@ -95,38 +102,44 @@ def parse_config_file(config_filename: str) -> NotifyConfig:
         sys.exit(1)
 
 
-NOTIFIERS = {
-    "mail": MailNotifier,
-}
-
-
-async def notify(branch: str, job_uid: str, job_result: int, configfile: str):
+async def notify(branch: str, job_uid: str, configfile: str):
     config = parse_config_file(configfile)
-    finished_jobs = await fetch_finished_jobs(branch, config.api_url)
+    running_job = await fetch_running_job(job_uid, config.api_url)
+    last_matching_job = await fetch_finished_jobs(branch, config.api_url)
 
-    job_state = "passed" if int(job_result) == 0 else "errored"
-    if finished_jobs and finished_jobs[0]["state"] == job_state:
-        print(f"No result change for branch '{branch}', don't notify")
+    if (
+        "status" in running_job
+        and "failed" in running_job["status"]
+        and int(running_job["status"]["failed"]) == 0
+    ):
+        job_state = "passed"
+    else:
+        job_state = "errored"
+
+    if (
+        last_matching_job is not None
+        and last_matching_job["state"] == job_state
+        and job_state == "passed"
+    ):
+        print(f"Job for branch '{branch}' still successful, don't notify")
         return
 
     title = f"Murdock job {job_state}: {branch}"
-    content = f"""Murdock job {job_uid} {job_state}!
+    content = f"""Murdock job for branch '{branch}' {job_state}!
 
 Results: {config.murdock_url}/details/{job_uid}
     """
 
-    for notifier_type, notifier_cls in NOTIFIERS.items():
-        notifier = notifier_cls(getattr(config, notifier_type))
+    for _, notifier in config.notifiers:
         await notifier.notify(title, content)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "branch", type=str, help="Name of the branch to notify results from"
+        "branch", type=str, help="Name of the branch"
     )
     parser.add_argument("--job-uid", type=str, help="UID of the Murdock job")
-    parser.add_argument("--job-result", type=int, help="Result of the Murdock job")
     parser.add_argument(
         "-f",
         "--configfile",

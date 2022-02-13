@@ -220,10 +220,10 @@ case "$ACTION" in
         # run post-build.d scripts
         post_build
 
-        # trigger result notifier on branches
-        if [ -n "${CI_BUILD_BRANCH}" ]; then
-            echo "--- Notify results on branch ${CI_BUILD_BRANCH}"
-            python ${BASEDIR}/notify.py "${CI_BUILD_BRANCH}" --job-uid "${CI_JOB_UID}" --job-result ${RES} -f ${BASEDIR}/config.yml
+        if [ -n "${NOTIFY_RESULTS}" ] && [ -n "${CI_BUILD_BRANCH}" ]; then
+            # trigger result notifier on branches
+            echo "--- Notify results for branch ${CI_BUILD_BRANCH}"
+            python ${BASEDIR}/notify.py "${CI_BUILD_BRANCH}" --job-uid "${CI_JOB_UID}"
         fi
 
         exit $RES
