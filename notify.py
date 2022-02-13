@@ -25,6 +25,7 @@ class MailConfig(BaseModel):
 
 
 class NotifyConfig(BaseModel):
+    murdock_url: Optional[str] = "http://localhost:8000"
     api_url: Optional[str] = "http://localhost:8000"
     mail: Optional[MailConfig]
 
@@ -111,7 +112,7 @@ async def notify(branch: str, job_uid: str, job_result: int, configfile: str):
     title = f"Murdock job {job_state}: {branch}"
     content = f"""Murdock job {job_uid} {job_state}!
 
-Results: {config.api_url}/results/{job_uid}
+Results: {config.murdock_url}/results/{job_uid}
     """
 
     for notifier_type, notifier_cls in NOTIFIERS.items():
