@@ -79,9 +79,12 @@ async def fetch_finished_jobs(branch, api_url: str) -> List[dict]:
             },
         )
         if response.status_code != 200:
-            return None
-
-        return response.json()[0]
+            return
+        
+        result = response.json()
+        if not result:
+            return
+        return result[0]
 
 
 def parse_config_file(config_filename: str) -> NotifyConfig:
