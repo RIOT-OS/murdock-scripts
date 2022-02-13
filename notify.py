@@ -112,7 +112,7 @@ async def notify(branch: str, job_uid: str, job_result: int, configfile: str):
     title = f"Murdock job {job_state}: {branch}"
     content = f"""Murdock job {job_uid} {job_state}!
 
-Results: {config.murdock_url}/results/{job_uid}
+Results: {config.murdock_url}/details/{job_uid}
     """
 
     for notifier_type, notifier_cls in NOTIFIERS.items():
