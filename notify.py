@@ -3,7 +3,7 @@ import asyncio
 import os
 import sys
 from email.message import EmailMessage
-from typing import Optional
+from typing import List, Optional
 
 import aiosmtplib
 import httpx
@@ -12,7 +12,7 @@ import yaml
 from pydantic import BaseModel, error_wrappers
 
 
-CONFIGFILE_DEFAULT = os.path.join(os.getcwd(), "config.yml")
+CONFIGFILE_DEFAULT = os.path.join(os.path.dirname(__file__), "config.yml")
 
 
 class MailConfig(BaseModel):
@@ -30,8 +30,7 @@ class NotifyConfig(BaseModel):
 
 
 class MailNotifier:
-
-    def __init__(self, config):
+    def __init__(self, config: MailConfig):
         self.mailto = config.mailto
         self.server = config.server
         self.port = config.port
@@ -39,7 +38,7 @@ class MailNotifier:
         self.username = config.username
         self.password = config.password
 
-    async def notify(self, title, content):
+    async def notify(self, title: str, content: str):
         message = EmailMessage()
         message["From"] = "ci@riot-os.org"
         message["To"] = self.mailto
@@ -60,7 +59,9 @@ class MailNotifier:
         print("Notification email sent")
 
 
-async def fetch_finished_jobs(branch, api_url, limit=5):
+async def fetch_finished_jobs(
+    branch, api_url: str, limit: Optional[int] = 5
+) -> List[dict]:
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{api_url}/jobs/finished?limit={limit}&is_branch=1&branch={branch}",
@@ -74,7 +75,7 @@ async def fetch_finished_jobs(branch, api_url, limit=5):
         return response.json()
 
 
-def parse_config_file(config_filename):
+def parse_config_file(config_filename: str) -> NotifyConfig:
     with open(config_filename) as config_file:
         content = config_file.read()
     try:
@@ -98,7 +99,7 @@ NOTIFIERS = {
 }
 
 
-async def notify(branch, job_uid, job_result, configfile):
+async def notify(branch: str, job_uid: str, job_result: int, configfile: str):
     config = parse_config_file(configfile)
     finished_jobs = await fetch_finished_jobs(branch, config.api_url)
 
