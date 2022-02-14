@@ -192,7 +192,7 @@ main() {
 
     get_jobs | dwqc ${DWQ_ENV} \
         --maxfail 500 \
-        --quiet --report ${REPORT_QUEUE} --outfile result.json
+        --quiet --report ${report_queue} --outfile result.json
 
     RES=$?
 
