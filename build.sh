@@ -36,7 +36,7 @@ _gethead() {
     local url="$2"
     local branch="${3:-master}"
 
-    git -C "$gitdir" ls-remote "$url" "refs/heads/${branch}" | cut -f1
+    git -C "${gitdir}" ls-remote "${url}" "refs/heads/${branch}" | cut -f1
 }
 
 gethead() {
@@ -44,21 +44,21 @@ gethead() {
     local branch="${2:-master}"
 
     local gitdir="$(git rev-parse --show-toplevel 2>/dev/null)"
-    [ -z "$gitdir" ] && {
+    [ -z "${gitdir}" ] && {
         local tmpdir="$(mktemp -d)"
-        gitdir="$tmpdir"
+        gitdir="${tmpdir}"
     }
-    _gethead "$gitdir" "$url" "$branch"
+    _gethead "${gitdir}" "${url}" "${branch}"
 
-    RES=$?
-    [ -n "$tmpdir" ] && rm -rf "$tmpdir"
-    return $RES
+    local res=$?
+    [ -n "${tmpdir}" ] && rm -rf "${tmpdir}"
+    return ${res}
 }
 
 post_build() {
     echo "-- processing results ..."
     for script in $(find ${BASEDIR}/post-build.d -type f -executable); do
-        echo "- running script \"$script\""
+        echo "- running script \"${script}\""
         python ${script} || true
     done
     echo "-- done processing results"
@@ -76,47 +76,47 @@ create_merge_commit() {
     local pr_num="$5"
 
     echo "--- creating merge commit ..."
-    echo "-- merging $pr_head into $base_head"
+    echo "-- merging ${pr_head} into ${base_head}"
 
     local tmpdir="$(mktemp -d /tmp/murdock_git.XXXXXX)"
 
-    MERGE_BRANCH=pull/$base_head/$pr_head
+    local merge_branch=pull/${base_head}/${pr_head}
     set +e
-    OUT="$({
+    local out="$({
         set -e
         echo "--- cloning base repo"
-        git-cache clone $base_repo $base_head $tmpdir
-        git -C $tmpdir checkout
+        git-cache clone ${base_repo} ${base_head} ${tmpdir}
+        git -C ${tmpdir} checkout
 
         echo "--- adding remotes"
-        git -C $tmpdir remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
-        git -C $tmpdir remote add pr_repo "https://github.com/$pr_repo"
+        git -C ${tmpdir} remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
+        git -C ${tmpdir} remote add pr_repo "https://github.com/${pr_repo}"
 
         echo "--- checking out merge branch"
-        git -C $tmpdir checkout -B $MERGE_BRANCH
-        echo "--- fetching $pr_head"
-        git -C $tmpdir fetch -f pr_repo $pr_head
-        echo "--- merging $pr_head into $base_head"
-        git -C $tmpdir merge --no-rerere-autoupdate --no-edit --no-ff $pr_head || {
+        git -C ${tmpdir} checkout -B ${merge_branch}
+        echo "--- fetching ${pr_head}"
+        git -C ${tmpdir} fetch -f pr_repo ${pr_head}
+        echo "--- merging ${pr_head} into ${base_head}"
+        git -C ${tmpdir} merge --no-rerere-autoupdate --no-edit --no-ff ${pr_head} || {
             echo "--- aborting merge"
-            git -C $tmpdir merge --abort
-            rm -rf $tmpdir
+            git -C ${tmpdir} merge --abort
+            rm -rf ${tmpdi}r
             false
         }
         echo "--- pushing result"
-        git -C $tmpdir push --force cache_repo
+        git -C ${tmpdir} push --force cache_repo
         } 2>&1 )"
-    RES=$?
+    local res=$?
     set -e
-    [ $RES -ne 0 ] && {
-        echo "$OUT"
+    [ ${res} -ne 0 ] && {
+        echo "${out}"
         echo "--- creating merge commit failed, aborting!"
-        rm -rf $tmpdir
+        rm -rf ${tmpdir}
         exit 1
     }
 
-    export CI_MERGE_COMMIT="$(git -C $tmpdir rev-parse $MERGE_BRANCH)"
-    rm -rf $tmpdir
+    export CI_MERGE_COMMIT="$(git -C ${tmpdir} rev-parse ${merge_branch})"
+    rm -rf ${tmpdir}
     echo "--- done."
 }
 
@@ -157,14 +157,14 @@ main() {
         echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
 
         local actual_base_head="$(gethead ${CI_BASE_REPO} ${CI_BASE_BRANCH})"
-        if [ -n "$ACTUAL_BASE_HEAD" ]; then
-            if [ "$ACTUAL_BASE_HEAD" != "$CI_BASE_COMMIT" ]; then
+        if [ -n "${actual_base_head}" ]; then
+            if [ "${actual_base_head}" != "${CI_BASE_COMMIT}" ]; then
                 echo "-- HEAD of ${CI_BASE_BRANCH} is ${actual_base_head}"
                 export CI_BASE_COMMIT="${actual_base_head}"
             fi
         fi
 
-        create_merge_commit $CI_BASE_REPO $CI_BASE_COMMIT $CI_PULL_REPO $CI_PULL_COMMIT $CI_PULL_NR
+        create_merge_commit ${CI_BASE_REPO} ${CI_BASE_COMMIT} ${CI_PULL_REPO} ${CI_PULL_COMMIT} ${CI_PULL_NR}
 
         export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
@@ -177,7 +177,7 @@ main() {
             exit 2
         }
 
-        echo "-- Building PR#$CI_PULL_NR $CI_PULL_URL head: $CI_PULL_COMMIT..."
+        echo "-- Building PR#${CI_PULL_NR} ${CI_PULL_URL} head: ${CI_PULL_COMMIT}..."
 
         export DWQ_ENV="-E CI_BASE_REPO -E CI_BASE_BRANCH -E CI_PULL_REPO -E CI_PULL_COMMIT \
             -E CI_PULL_NR -E CI_PULL_URL -E CI_PULL_LABELS -E CI_MERGE_COMMIT \
@@ -194,14 +194,14 @@ main() {
         --maxfail 500 \
         --quiet --report ${report_queue} --outfile result.json
 
-    RES=$?
+    local res=$?
 
     sleep 1
 
     kill ${reporter_pid} >/dev/null 2>&1 && wait ${reporter_pid} 2>/dev/null
 
     # export result to post-build scripts
-    if [ $RES -eq 0 ]; then
+    if [ ${res} -eq 0 ]; then
         export CI_BUILD_RESULT=success
     else
         export CI_BUILD_RESULT=failed
@@ -210,16 +210,16 @@ main() {
     # run post-build.d scripts
     post_build
 
-    # Process result.json for UI
+    # Process result.json to generate UI data
     python ${BASEDIR}/process_result.py
 
     if [ -n "${NOTIFY_RESULTS}" ] && [ -n "${CI_BUILD_BRANCH}" ]; then
         # trigger result notifier on branches
-        echo "--- Notify results for branch ${CI_BUILD_BRANCH}"
+        echo "-- Notify results for branch ${CI_BUILD_BRANCH}"
         python ${BASEDIR}/notify.py "${CI_BUILD_BRANCH}" --job-uid "${CI_JOB_UID}"
     fi
 
-    exit $RES
+    exit ${res}
 }
 
 main
