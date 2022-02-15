@@ -213,6 +213,11 @@ main() {
     # Process result.json to generate UI data
     python ${BASEDIR}/process_result.py
 
+    echo "-- Compressing result.json"
+    echo "-- Disk usage before compression: $(du -sh result.json | awk '{print $1}')"
+    gzip result.json
+    echo "-- Disk usage after compression : $(du -sh result.json.gz | awk '{print $1}')"
+
     if [ -n "${NOTIFY_RESULTS}" ] && [ -n "${CI_BUILD_BRANCH}" ]; then
         # trigger result notifier on branches
         echo "-- Notify results for branch ${CI_BUILD_BRANCH}"
