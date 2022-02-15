@@ -145,13 +145,13 @@ def main():
                     failed_tests = failed_tests[:maxfailed_tests]
 
                     if nfailed_jobs > maxfailed_jobs:
-                        failed_jobs.append((f"({nfailed_jobs - maxfailed_jobs} more failed jobs)", None, None, None, None))
+                        failed_jobs.append((f"and {nfailed_jobs - maxfailed_jobs} more failed jobs...", None, None, None, None))
 
                     if nfailed_builds > maxfailed_builds:
-                        failed_builds.append((f"({nfailed_builds - maxfailed_builds} more build failures)", None, None, None, None))
+                        failed_builds.append((f"and {nfailed_builds - maxfailed_builds} more build failures...", None, None, None, None))
 
                     if nfailed_tests > maxfailed_tests:
-                        failed_tests.append((f"({nfailed_tests - maxfailed_tests} more test failures)", None, None, None, None))
+                        failed_tests.append((f"and {nfailed_tests - maxfailed_tests} more test failures...", None, None, None, None))
 
             if _status.get("status", "") == "done":
                 update_status(None, uid, token, failed_jobs, failed_builds, failed_tests)
