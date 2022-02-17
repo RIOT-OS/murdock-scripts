@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import os
 import sys
+import json
 from email.message import EmailMessage
 from typing import List, Optional
 
@@ -45,8 +46,26 @@ class MailNotifier(BaseModel):
             print("Notification email sent")
 
 
+class MatrixNotifier(BaseModel):
+    room: str
+    token: str
+
+    async def notify(self, _: str, content: str):
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"https://matrix.org/_matrix/client/r0/rooms/%21{self.room[1:]}"
+                f"/send/m.room.message?access_token={self.token}",
+                content=json.dumps({"msgtype": "m.text", "body": content}),
+            )
+            if response.status_code != 200:
+                print(f"Cannot send message to matrix room '{self.room}': {response} {response.json()}")
+                return
+            print(f"Notification posted on Matrix room '{self.room}'")
+
+
 class NotifiersModel(BaseModel):
     mail: Optional[MailNotifier]
+    matrix: Optional[MatrixNotifier]
 
 
 class NotifyConfig(BaseModel):
@@ -135,7 +154,8 @@ Results: {config.murdock_url}/details/{job_uid}
     """
 
     for _, notifier in config.notifiers:
-        await notifier.notify(title, content)
+        if notifier is not None:
+            await notifier.notify(title, content)
 
 
 def main():
