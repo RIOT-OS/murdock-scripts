@@ -2,6 +2,8 @@ FROM riot/murdock:latest
 
 LABEL maintainer="alexandre.abadie@inria.fr"
 
+USER root
+
 # Install tools required by the murdock scripts
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -26,3 +28,5 @@ RUN wget https://raw.githubusercontent.com/kaspar030/git-cache/f76c3a5f0e15f08c2
 # Set a global system-wide git user and email address
 RUN git config --system user.name "riot" && \
     git config --system user.email "riot@riot-labs.de"
+
+USER murdock
