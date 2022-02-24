@@ -219,12 +219,6 @@ main() {
     echo "--- Disk usage after compression : $(du -sh result.json.gz | awk '{print $1}')"
     echo "--- Total disk usage: $(du -sh . | awk '{print $1}')"
 
-    if [ -n "${NOTIFY_RESULTS}" ] && [ -n "${CI_BUILD_BRANCH}" ]; then
-        # trigger result notifier on branches
-        echo "-- Notify results for branch ${CI_BUILD_BRANCH}"
-        python ${BASEDIR}/notify.py "${CI_BUILD_BRANCH}" --job-uid "${CI_JOB_UID}"
-    fi
-
     exit ${res}
 }
 
