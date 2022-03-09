@@ -48,7 +48,7 @@ def parse_result(jobs):
         [parse_job(job) for job in jobs], key=lambda job: job["name"]
     )
     builds = {
-        job["application"]: [] for job in jobs if job["type"] == "compile"
+        job["application"]: [] for job in jobs if job["type"] == "builds"
     }
     build_success = {
         application: [] for application in builds
@@ -57,7 +57,7 @@ def parse_result(jobs):
         application: [] for application in builds
     }
     tests = {
-        job["application"]: [] for job in jobs if job["type"] == "run_test"
+        job["application"]: [] for job in jobs if job["type"] == "tests"
     }
     test_success = {
         application: [] for application in tests
@@ -84,7 +84,7 @@ def parse_result(jobs):
             workers_failed.update({worker: 0})
         if worker not in workers_passed:
             workers_passed.update({worker: 0})
-        if job["type"] == "compile":
+        if job["type"] == "builds":
             builds_count += 1
             builds[application].append(job)
             if worker not in workers_runtimes:
@@ -99,7 +99,7 @@ def parse_result(jobs):
                 build_success[application].append(job)
                 workers_passed[worker] += 1
             continue
-        if job["type"] == "run_test":
+        if job["type"] == "tests":
             tests_count += 1
             tests[application].append(job)
             if job["status"] is False:
@@ -141,7 +141,7 @@ def create_application_files(job_type, all_results):
     if job_type == "run_test":
         jobs = all_results["tests"]
         jobs_failure = all_results["test_failures"]
-    else:  # compile type jobs
+    else:  # builds type jobs
         jobs = all_results["builds"]
         jobs_failure = all_results["build_failures"]
 
@@ -261,7 +261,7 @@ def main():
     with open("stats.json", "w") as stats_json:
         stats_json.write(orjson.dumps(stats).decode())
 
-    for job_type in ("compile", "run_test"):
+    for job_type in ("builds", "tests"):
         create_application_files(job_type, results_parsed)
 
     if (
