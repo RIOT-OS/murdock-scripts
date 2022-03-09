@@ -29,7 +29,7 @@ signal.signal(signal.SIGINT, signal_handler)
 def save_job_result(job):
     if job["type"] in ["builds", "tests"]:
         filename = os.path.join(
-            "output", job["type"], job["application"], f"{job['board']}:{job['toolchain']}.txt"
+            "output", job["type"], job["application"], f"{job['target']}:{job['toolchain']}.txt"
         )
     else:
         filename = os.path.join("output", f"{job['name']}.txt")
@@ -58,10 +58,10 @@ def update_status(data, uid, token, failed_jobs, failed_builds, failed_tests):
 
     if failed_builds:
         status["failed_builds"] = []
-        for application, board, toolchain, worker, runtime  in failed_builds:
+        for application, target, toolchain, worker, runtime  in failed_builds:
             failed_build = {
                 "application": application,
-                "board": board,
+                "target": target,
                 "toolchain": toolchain,
                 "worker": worker,
                 "runtime": runtime,
@@ -70,10 +70,10 @@ def update_status(data, uid, token, failed_jobs, failed_builds, failed_tests):
 
     if failed_tests:
         status["failed_tests"] = []
-        for application, board, toolchain, worker, runtime  in failed_tests:
+        for application, target, toolchain, worker, runtime  in failed_tests:
             failed_test = {
                 "application": application,
-                "board": board,
+                "target": target,
                 "toolchain": toolchain,
                 "worker": worker,
                 "runtime": runtime,
@@ -136,14 +136,14 @@ def main():
                         nfailed_builds += 1
                         if nfailed_builds <= maxfailed_builds:
                             failed_builds.append(
-                                (job["application"], job["board"], job["toolchain"], worker, runtime)
+                                (job["application"], job["target"], job["toolchain"], worker, runtime)
                             )
 
                     elif jobname.startswith("run_test/"):
                         nfailed_tests += 1
                         if nfailed_tests <= maxfailed_tests:
                             failed_tests.append(
-                                (job["application"], job["board"], job["toolchain"], worker, runtime)
+                                (job["application"], job["target"], job["toolchain"], worker, runtime)
                             )
 
                     failed_jobs = failed_jobs[:maxfailed_jobs]

@@ -189,7 +189,7 @@ def main():
             build_failures.append(
                 {
                     "application": build,
-                    "board": job["board"],
+                    "target": job["target"],
                     "toolchain": job["toolchain"],
                     "worker": job["worker"],
                     "runtime": job["runtime"],
@@ -222,7 +222,7 @@ def main():
             test_failures.append(
                 {
                     "application": build,
-                    "board": job["board"],
+                    "target": job["target"],
                     "toolchain": job["toolchain"],
                     "worker": job["worker"],
                     "runtime": job["runtime"],

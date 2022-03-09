@@ -35,7 +35,7 @@ def parse_job(job):
     if match is not None:
         result["type"] = "tests" if match.group(1) == "run_test" else "builds"
         result["application"] = match.group(2)
-        result["board"] = match.group(3)
+        result["target"] = match.group(3)
         result["toolchain"] = match.group(4)
     else:
         result["type"] = result["name"]
