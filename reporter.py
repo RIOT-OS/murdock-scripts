@@ -27,7 +27,12 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 def save_job_result(job):
-    filename = os.path.join("output", f"{job['name']}.txt")
+    if job["name"] == "static_test":
+        filename = os.path.join("output", f"{job['name']}.txt")
+    else:
+        filename = os.path.join(
+            "output", job["type"], job["application"], f"{job['board']}:{job['toolchain']}.txt"
+        )
     if filename:
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, "w") as f:
