@@ -2,45 +2,12 @@ import os
 import statistics
 import sys
 
-from string import Template
-
 import orjson
 
 from common import parse_job, nicetime
 
 
 RESULT_JSON_FILE = "result.json"
-
-
-def create_badge(filename, status="failed"):
-    badge = Template("""
-<svg xmlns="http://www.w3.org/2000/svg" width="77" height="20">
-<defs>
-  <style type="text/css">
-    <![CDATA[
-      rect {
-        fill: #555;
-      }
-      .passed {
-        fill: rgb(68, 204, 17);
-      }
-      .failed {
-        fill: rgb(224, 93, 68);
-      }
-    ]]>
-  </style>
-</defs>
-<rect rx="3" width="77" height="20" />
-<rect rx="3" x="24" width="53" height="20" class="${status}" />
-<rect x="24" width="4" height="20" class="${status}" />
-<g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
-  <text x="12" y="14">CI</text>
-  <text x="50" y="14">${status}</text>
-</g>
-</svg>
-""")
-    with open(filename, "w") as badge_svg:
-        badge_svg.write(badge.substitute(status=status))
 
 
 def parse_result(jobs):
@@ -263,14 +230,6 @@ def main():
 
     for job_type in ("builds", "tests"):
         create_application_files(job_type, results_parsed)
-
-    if (
-        results_parsed["build_failures_count"] == 0
-        and results_parsed["test_failures_count"] == 0
-    ):
-        create_badge("badge.svg", "passed")
-    else:
-        create_badge("badge.svg", "failed")
 
 
 if __name__=="__main__":

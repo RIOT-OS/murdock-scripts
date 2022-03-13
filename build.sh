@@ -134,16 +134,8 @@ main() {
     if [ -n "${CI_BUILD_COMMIT}" ]; then
         if [ -n "${CI_BUILD_BRANCH}" ]; then
             echo "-- Building branch ${CI_BUILD_BRANCH} head: ${CI_BUILD_COMMIT}..."
-            # Create a symlink to this job so it can be linked easily in an URL
-            mkdir -p ../branches
-            rm -f ../branches/${CI_BUILD_BRANCH}
-            ln -s ${PWD} ../branches/${CI_BUILD_BRANCH}
         elif [ -n "${CI_BUILD_TAG}" ]; then
             echo "-- Building tag ${CI_BUILD_TAG} (${CI_BUILD_COMMIT})..."
-            # Create a symlink to this job so it can be linked easily in an URL
-            mkdir -p ../tags
-            rm -f ../tags/${CI_BUILD_TAG}
-            ln -s ${PWD} ../tags/${CI_BUILD_TAG}
         else
             echo "-- Building commit ${CI_BUILD_COMMIT}..."
         fi
