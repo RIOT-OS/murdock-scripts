@@ -127,7 +127,7 @@ create_merge_commit() {
 
 main() {
     local status='{"status" : {"status": "Fetching code"}}'
-    /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/jobs/running/${CI_JOB_UID}/status > /dev/null
+    /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/job/${CI_JOB_UID}/status > /dev/null
 
     export APPS BOARDS
 

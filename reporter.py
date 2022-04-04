@@ -82,7 +82,7 @@ def update_status(data, uid, token, failed_jobs, failed_builds, failed_tests):
 
     data = json.dumps({"uid" : uid, "status" : status})
     requests.put(
-        f'{MURDOCK_API_BASE_URL}/jobs/running/{uid}/status',
+        f'{MURDOCK_API_BASE_URL}/job/{uid}/status',
         headers={"Authorization": token},
         data=data
     )
