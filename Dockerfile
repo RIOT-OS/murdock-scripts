@@ -1,4 +1,4 @@
-FROM riot/murdock:latest
+FROM murdockng/murdock:latest
 
 LABEL maintainer="alexandre.abadie@inria.fr"
 
