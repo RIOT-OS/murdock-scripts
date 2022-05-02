@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 ACTION="$1"
 
@@ -101,7 +101,7 @@ create_merge_commit() {
         git -C ${repo_dir} merge --no-rerere-autoupdate --no-edit --no-ff ${pr_head} || {
             echo "--- aborting merge"
             git -C ${repo_dir} merge --abort
-            rm -rf ${repo_dir}r
+            rm -rf ${repo_dir}
             false
         }
         echo "--- pushing result"
