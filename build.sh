@@ -148,8 +148,7 @@ main() {
         # Clone the repository with specified commit
         git clone https://github.com/RIOT-OS/RIOT.git ${repo_dir}
         git -C ${repo_dir} checkout ${CI_BUILD_COMMIT}
-    elif [ -n "${${CI_PULL_COMMIT}}" ]; then
-
+    elif [ -n "${CI_PULL_COMMIT}" ]; then
         echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
 
         local actual_base_head="$(gethead ${CI_BASE_REPO} ${CI_BASE_BRANCH})"
