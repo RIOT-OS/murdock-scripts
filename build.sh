@@ -69,11 +69,12 @@ get_jobs() {
 }
 
 create_merge_commit() {
-    local base_repo="$1"
-    local base_head="$2"
-    local pr_repo="$3"
-    local pr_head="$4"
-    local pr_num="$5"
+    local repo_dir="$1"
+    local base_repo="$2"
+    local base_head="$3"
+    local pr_repo="$4"
+    local pr_head="$5"
+    local pr_num="$6"
 
     echo "--- creating merge commit ..."
     echo "-- merging ${pr_head} into ${base_head}"
@@ -85,38 +86,37 @@ create_merge_commit() {
     local out="$({
         set -e
         echo "--- cloning base repo"
-        git-cache clone ${base_repo} ${base_head} ${tmpdir}
-        git -C ${tmpdir} checkout
+        git-cache clone ${base_repo} ${base_head} ${repo_dir}
+        git -C ${repo_dir} checkout
 
         echo "--- adding remotes"
-        git -C ${tmpdir} remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
-        git -C ${tmpdir} remote add pr_repo "https://github.com/${pr_repo}"
+        git -C ${repo_dir} remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
+        git -C ${repo_dir} remote add pr_repo "https://github.com/${pr_repo}"
 
         echo "--- checking out merge branch"
-        git -C ${tmpdir} checkout -B ${merge_branch}
+        git -C ${repo_dir} checkout -B ${merge_branch}
         echo "--- fetching ${pr_head}"
-        git -C ${tmpdir} fetch -f pr_repo ${pr_head}
+        git -C ${repo_dir} fetch -f pr_repo ${pr_head}
         echo "--- merging ${pr_head} into ${base_head}"
-        git -C ${tmpdir} merge --no-rerere-autoupdate --no-edit --no-ff ${pr_head} || {
+        git -C ${repo_dir} merge --no-rerere-autoupdate --no-edit --no-ff ${pr_head} || {
             echo "--- aborting merge"
-            git -C ${tmpdir} merge --abort
-            rm -rf ${tmpdi}r
+            git -C ${repo_dir} merge --abort
+            rm -rf ${repo_dir}r
             false
         }
         echo "--- pushing result"
-        git -C ${tmpdir} push --force cache_repo
+        git -C ${repo_dir} push --force cache_repo
         } 2>&1 )"
     local res=$?
     set -e
     [ ${res} -ne 0 ] && {
         echo "${out}"
         echo "--- creating merge commit failed, aborting!"
-        rm -rf ${tmpdir}
+        rm -rf ${repo_dir}
         exit 1
     }
 
-    export CI_MERGE_COMMIT="$(git -C ${tmpdir} rev-parse ${merge_branch})"
-    rm -rf ${tmpdir}
+    export CI_MERGE_COMMIT="$(git -C ${repo_dir} rev-parse ${merge_branch})"
     echo "--- done."
 }
 
@@ -131,6 +131,7 @@ main() {
 
     export APPS BOARDS
 
+    local repo_dir="RIOT"
     if [ -n "${CI_BUILD_COMMIT}" ]; then
         if [ -n "${CI_BUILD_BRANCH}" ]; then
             echo "-- Building branch ${CI_BUILD_BRANCH} head: ${CI_BUILD_COMMIT}..."
@@ -144,6 +145,9 @@ main() {
         export DWQ_REPO="${CI_BUILD_REPO}"
         export DWQ_COMMIT="${CI_BUILD_COMMIT}"
         export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
+        # Clone the repository with specified commit
+        git clone https://github.com/RIOT-OS/RIOT.git ${repo_dir}
+        git -C ${repo_dir} checkout ${CI_BUILD_COMMIT}
     elif [ -n "${${CI_PULL_COMMIT}}" ]; then
 
         echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
@@ -156,7 +160,7 @@ main() {
             fi
         fi
 
-        create_merge_commit ${CI_BASE_REPO} ${CI_BASE_COMMIT} ${CI_PULL_REPO} ${CI_PULL_COMMIT} ${CI_PULL_NR}
+        create_merge_commit ${repo_dir} ${CI_BASE_REPO} ${CI_BASE_COMMIT} ${CI_PULL_REPO} ${CI_PULL_COMMIT} ${CI_PULL_NR}
 
         export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
@@ -204,6 +208,9 @@ main() {
 
     # run post-build.d scripts
     post_build
+
+    # remove local copy of repository
+    rm -rf ${repo_dir}
 
     # Process result.json to generate UI data
     ${BASEDIR}/process_result.py
