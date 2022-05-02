@@ -10,6 +10,7 @@ RUN apt-get update && \
         doxygen \
         git \
         graphviz \
+        make \
         python3-pip \
         ssh-client \
         wget \
@@ -19,7 +20,8 @@ RUN apt-get update && \
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install \
         dwq==0.0.52 \
-        orjson==3.6.6
+        orjson==3.6.6 \
+        requests==2.27.1
 
 # get git-cache directly from github
 RUN wget https://raw.githubusercontent.com/kaspar030/git-cache/f76c3a5f0e15f08c28e53fb037755f29f0b76d88/git-cache \
