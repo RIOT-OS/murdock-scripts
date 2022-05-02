@@ -127,7 +127,7 @@ create_merge_commit() {
 
 main() {
     local status='{"status" : {"status": "Fetching code"}}'
-    /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT http://localhost:8000/job/${CI_JOB_UID}/status > /dev/null
+    /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT ${CI_DOCKER_API_URL}/job/${CI_JOB_UID}/status > /dev/null
 
     export APPS BOARDS
 
@@ -144,7 +144,7 @@ main() {
         export DWQ_REPO="${CI_BUILD_REPO}"
         export DWQ_COMMIT="${CI_BUILD_COMMIT}"
         export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
-    else # Building a PR
+    elif [ -n "${${CI_PULL_COMMIT}}" ]; then
 
         echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
 
@@ -174,10 +174,13 @@ main() {
         export DWQ_ENV="-E CI_BASE_REPO -E CI_BASE_BRANCH -E CI_PULL_REPO -E CI_PULL_COMMIT \
             -E CI_PULL_NR -E CI_PULL_URL -E CI_PULL_LABELS -E CI_MERGE_COMMIT \
             -E CI_BASE_COMMIT -E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
+    else # Invalid configuration, aborting
+        echo "Invalid job configuration, return with error"
+        exit 2
     fi
 
     local report_queue="status::${CI_JOB_UID}:$(random)"
-    python ${BASEDIR}/reporter.py "${report_queue}" ${CI_JOB_UID} ${CI_JOB_TOKEN} &
+    ${BASEDIR}/reporter.py "${report_queue}" ${CI_JOB_UID} ${CI_JOB_TOKEN} &
     local reporter_pid=$!
 
     set +e
@@ -203,7 +206,7 @@ main() {
     post_build
 
     # Process result.json to generate UI data
-    python ${BASEDIR}/process_result.py
+    ${BASEDIR}/process_result.py
 
     echo "-- Compressing result.json"
     echo "--- Disk usage before compression: $(du -sh result.json | awk '{print $1}')"

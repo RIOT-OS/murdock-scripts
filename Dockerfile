@@ -1,14 +1,14 @@
-FROM murdockng/murdock:latest
+FROM ubuntu:jammy
 
 LABEL maintainer="alexandre.abadie@inria.fr"
-
-USER root
 
 # Install tools required by the murdock scripts
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        curl \
         bsdmainutils \
         git \
+        python3-pip \
         ssh-client \
         wget \
         && \
@@ -28,4 +28,11 @@ RUN wget https://raw.githubusercontent.com/kaspar030/git-cache/f76c3a5f0e15f08c2
 RUN git config --system user.name "riot" && \
     git config --system user.email "riot@riot-labs.de"
 
-USER murdock
+RUN mkdir -p /opt/murdock-scripts
+COPY . /opt/murdock-scripts
+
+RUN chmod +x /opt/murdock-scripts/build.sh
+RUN chmod +x /opt/murdock-scripts/reporter.py
+RUN chmod +x /opt/murdock-scripts/process_result.py
+
+CMD ["/opt/murdock-scripts/build.sh"]
