@@ -3,12 +3,12 @@
 ACTION="$1"
 
 export DWQ_DISQUE_URL="disque:7711"
-CI_GIT_URL="ssh://git@gitea.riot-labs.de:22222"
-CI_GIT_URL_WORKER="https://gitea.riot-labs.de"
+CI_GIT_URL="ssh://git@git.riot-os.org/murdock/RIOT"
+CI_GIT_URL_WORKER="https://git.riot-os.org"
 
 MURDOCK_API_URL="http://localhost:8000"
 
-MERGE_COMMIT_REPO="riot-ci/RIOT"
+MERGE_COMMIT_REPO="murdock/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
 
