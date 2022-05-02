@@ -7,7 +7,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
         bsdmainutils \
+        doxygen \
         git \
+        graphviz \
         python3-pip \
         ssh-client \
         wget \

@@ -193,14 +193,18 @@ main() {
         --maxfail 500 \
         --quiet --report ${report_queue} --outfile result.json
 
-    local res=$?
+    local build_test_res=$?
 
     sleep 1
 
     kill ${reporter_pid} >/dev/null 2>&1 && wait ${reporter_pid} 2>/dev/null
 
+    # Build Doxygen documentation
+    make -C ${repo_dir} doc --no-print-directory 2>/dev/null
+    local doc_res=$?
+
     # export result to post-build scripts
-    if [ ${res} -eq 0 ]; then
+    if [ ${build_test_res} -eq 0 ] && [ ${doc_res} -eq 0 ]; then
         export CI_BUILD_RESULT=success
     else
         export CI_BUILD_RESULT=failed
