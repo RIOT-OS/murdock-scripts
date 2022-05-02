@@ -16,7 +16,7 @@ from common import parse_job
 
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), "utf-8", "replace")
 
-MURDOCK_API_BASE_URL = os.getenv("CI_DOCKER_API_URL", "http://localhost:8000")
+MURDOCK_API_BASE_URL = "http://localhost:8000"
 
 
 def signal_handler(signal, frame):

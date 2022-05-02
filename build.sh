@@ -5,6 +5,8 @@ ACTION="$1"
 CI_GIT_URL="ssh://git@gitea.riot-labs.de:22222"
 CI_GIT_URL_WORKER="https://gitea.riot-labs.de"
 
+MURDOCK_API_URL="http://localhost:8000"
+
 MERGE_COMMIT_REPO="riot-ci/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
@@ -127,7 +129,7 @@ create_merge_commit() {
 
 main() {
     local status='{"status" : {"status": "Fetching code"}}'
-    /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT ${CI_DOCKER_API_URL}/job/${CI_JOB_UID}/status > /dev/null
+    /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT ${MURDOCK_API_URL}/job/${CI_JOB_UID}/status > /dev/null
 
     export APPS BOARDS
 
