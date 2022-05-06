@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 ACTION="$1"
 
@@ -83,39 +83,29 @@ create_merge_commit() {
     echo "-- merging ${pr_head} into ${base_head}"
 
     local merge_branch=pull/${base_head}/${pr_head}
-    set +e
-    local out="$({
-        set -e
-        echo "--- cloning base repo"
-        git-cache clone ${base_repo} ${base_head} ${repo_dir}
-        git -C ${repo_dir} checkout
+    echo "--- cloning base repo"
+    git-cache init
+    git-cache clone ${base_repo} ${base_head} ${repo_dir}
+    git -C ${repo_dir} checkout
 
-        echo "--- adding remotes"
-        git -C ${repo_dir} remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
-        git -C ${repo_dir} remote add pr_repo "https://github.com/${pr_repo}"
+    echo "--- adding remotes"
+    git -C ${repo_dir} remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
+    git -C ${repo_dir} remote add pr_repo "https://github.com/${pr_repo}"
 
-        echo "--- checking out merge branch"
-        git -C ${repo_dir} checkout -B ${merge_branch}
-        echo "--- fetching ${pr_head}"
-        git -C ${repo_dir} fetch -f pr_repo ${pr_head}
-        echo "--- merging ${pr_head} into ${base_head}"
-        git -C ${repo_dir} merge --no-rerere-autoupdate --no-edit --no-ff ${pr_head} || {
-            echo "--- aborting merge"
-            git -C ${repo_dir} merge --abort
-            rm -rf ${repo_dir}
-            false
-        }
-        echo "--- pushing result"
-        git -C ${repo_dir} push --force cache_repo
-        } 2>&1 )"
-    local res=$?
-    set -e
-    [ ${res} -ne 0 ] && {
-        echo "${out}"
+    echo "--- checking out merge branch"
+    git -C ${repo_dir} checkout -B ${merge_branch}
+    echo "--- fetching ${pr_head}"
+    git -C ${repo_dir} fetch -f pr_repo ${pr_head}
+    echo "--- merging ${pr_head} into ${base_head}"
+    git -C ${repo_dir} merge --no-rerere-autoupdate --no-edit --no-ff ${pr_head}
+    if [ $? -ne 0 ]; then
         echo "--- creating merge commit failed, aborting!"
         rm -rf ${repo_dir}
         exit 1
-    }
+    else
+        echo "--- pushing result"
+        git -C ${repo_dir} push --force cache_repo
+    fi
 
     export CI_MERGE_COMMIT="$(git -C ${repo_dir} rev-parse ${merge_branch})"
     echo "--- done."
@@ -187,8 +177,6 @@ main() {
     local report_queue="status::${CI_JOB_UID}:$(random)"
     ${BASEDIR}/reporter.py "${report_queue}" ${CI_JOB_UID} ${CI_JOB_TOKEN} &
     local reporter_pid=$!
-
-    set +e
 
     get_jobs | dwqc ${DWQ_ENV} \
         --maxfail 500 \
