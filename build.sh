@@ -3,7 +3,7 @@
 ACTION="$1"
 
 export DWQ_DISQUE_URL="disque:7711"
-CI_GIT_URL="ssh://git@git.riot-os.org/murdock/RIOT"
+CI_GIT_URL="ssh://git@git.riot-os.org:3333"
 CI_GIT_URL_WORKER="https://git.riot-os.org"
 
 MURDOCK_API_URL="http://localhost:8000"
