@@ -147,8 +147,9 @@ main() {
         export DWQ_COMMIT="${CI_BUILD_COMMIT}"
         export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
         # Clone the repository with specified commit
-        git clone https://github.com/${CI_BUILD_REPO}.git ${repo_dir}
-        git -C ${repo_dir} checkout ${CI_BUILD_COMMIT} 2>/dev/null
+        # uncomment the following if later make doc is handled in build.sh
+        # git clone https://github.com/${CI_BUILD_REPO}.git ${repo_dir}
+        # git -C ${repo_dir} checkout ${CI_BUILD_COMMIT} 2>/dev/null
     elif [ -n "${CI_PULL_COMMIT}" ]; then
         echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
 
@@ -200,9 +201,10 @@ main() {
     kill ${reporter_pid} >/dev/null 2>&1 && wait ${reporter_pid} 2>/dev/null
 
     # Build Doxygen documentation
-    echo "-- Building Doxygen documentation"
-    make -C ${repo_dir} doc --no-print-directory 2>/dev/null
-    cp -R ${repo_dir}/doc/doxygen/html ./doc-preview
+    # uncomment the following if later make doc is handled in build.sh
+    # echo "-- Building Doxygen documentation"
+    # make -C ${repo_dir} doc --no-print-directory 2>/dev/null
+    # cp -R ${repo_dir}/doc/doxygen/html ./doc-preview
 
     # export result to post-build scripts
     if [ ${build_test_res} -eq 0 ]; then
