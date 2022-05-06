@@ -39,4 +39,11 @@ RUN chmod +x /opt/murdock-scripts/build.sh
 RUN chmod +x /opt/murdock-scripts/reporter.py
 RUN chmod +x /opt/murdock-scripts/process_result.py
 
+ARG UID=1000
+ARG GID=1000
+
+RUN groupadd --gid ${GID} murdock
+RUN useradd --home-dir /home/murdock --shell /bin/bash --uid ${UID} --gid ${GID} murdock
+USER murdock
+
 CMD ["/opt/murdock-scripts/build.sh"]
