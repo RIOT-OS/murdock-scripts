@@ -82,8 +82,6 @@ create_merge_commit() {
     echo "--- creating merge commit ..."
     echo "-- merging ${pr_head} into ${base_head}"
 
-    local tmpdir="$(mktemp -d /tmp/murdock_git.XXXXXX)"
-
     local merge_branch=pull/${base_head}/${pr_head}
     set +e
     local out="$({
