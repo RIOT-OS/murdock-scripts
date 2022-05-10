@@ -9,6 +9,7 @@ CI_GIT_URL_WORKER="https://git.riot-os.org"
 MURDOCK_API_URL="http://localhost:8000"
 
 MERGE_COMMIT_REPO="murdock/RIOT"
+GITHUB_REPO_URL="https://github.com/RIOT-OS/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
 
@@ -71,31 +72,37 @@ get_jobs() {
     dwqc ${DWQ_ENV} './.murdock get_jobs'
 }
 
+checkout_commit() {
+    local repo_dir="$1"
+    local base_repo="$2"
+    local base_commit="$3"
+
+    echo "--- cloning base repo"
+    git-cache init
+    git-cache clone ${base_repo} ${base_commit} ${repo_dir}
+
+    echo "--- adding remotes"
+    git -C ${repo_dir} remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
+    git -C ${repo_dir} remote add github ${GITHUB_REPO_URL}
+
+    git -C ${repo_dir} fetch github ${base_commit}
+    git -C ${repo_dir} checkout ${base_commit}
+}
+
 create_merge_commit() {
     local repo_dir="$1"
     local base_repo="$2"
     local base_head="$3"
-    local pr_repo="$4"
-    local pr_head="$5"
-    local pr_num="$6"
+    local pr_head="$4"
+    local pr_num="$5"
 
-    echo "--- creating merge commit ..."
-    echo "-- merging ${pr_head} into ${base_head}"
-
-    local merge_branch=pull/${base_head}/${pr_head}
-    echo "--- cloning base repo"
-    git-cache init
-    git-cache clone ${base_repo} ${base_head} ${repo_dir}
-    git -C ${repo_dir} checkout
-
-    echo "--- adding remotes"
-    git -C ${repo_dir} remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
-    git -C ${repo_dir} remote add pr_repo "https://github.com/${pr_repo}"
+    checkout_commit ${repo_dir} ${base_repo} ${base_head}
 
     echo "--- checking out merge branch"
+    local merge_branch=pull/${base_head}/${pr_head}
     git -C ${repo_dir} checkout -B ${merge_branch}
-    echo "--- fetching ${pr_head}"
-    git -C ${repo_dir} fetch -f pr_repo ${pr_head}
+    echo "--- fetching PR HEAD: ${pr_head}"
+    git -C ${repo_dir} fetch github pull/${pr_num}/head -f
     echo "--- merging ${pr_head} into ${base_head}"
     git -C ${repo_dir} merge --no-rerere-autoupdate --no-edit --no-ff ${pr_head}
     if [ $? -ne 0 ]; then
@@ -108,7 +115,6 @@ create_merge_commit() {
     fi
 
     export CI_MERGE_COMMIT="$(git -C ${repo_dir} rev-parse ${merge_branch})"
-    echo "--- done."
 }
 
 : ${NIGHTLY:=0}
@@ -124,6 +130,22 @@ main() {
 
     local repo_dir="RIOT"
     if [ -n "${CI_BUILD_COMMIT}" ]; then
+        export NIGHTLY STATIC_TESTS
+        export DWQ_REPO="${CI_BUILD_REPO}"
+        export DWQ_COMMIT="${CI_BUILD_COMMIT}"
+        export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
+
+        checkout_commit ${repo_dir} ${GITHUB_REPO_URL} ${CI_BUILD_COMMIT}
+
+        echo "--- checking out build branch"
+        local build_branch=build/${CI_BUILD_COMMIT}
+        git -C ${repo_dir} checkout -B ${build_branch}
+        git -C ${repo_dir} log -1 --oneline
+        echo "--- pushing build branch"
+        git -C ${repo_dir} push --force cache_repo ${build_branch}
+        echo "--- using build commit SHA1=${CI_BUILD_COMMIT}"
+        echo "-- done."
+
         if [ -n "${CI_BUILD_BRANCH}" ]; then
             echo "-- Building branch ${CI_BUILD_BRANCH} head: ${CI_BUILD_COMMIT}..."
         elif [ -n "${CI_BUILD_TAG}" ]; then
@@ -131,17 +153,8 @@ main() {
         else
             echo "-- Building commit ${CI_BUILD_COMMIT}..."
         fi
-
-        export NIGHTLY STATIC_TESTS
-        export DWQ_REPO="${CI_BUILD_REPO}"
-        export DWQ_COMMIT="${CI_BUILD_COMMIT}"
-        export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS"
-        # Clone the repository with specified commit
-        # uncomment the following if later make doc is handled in build.sh
-        # git clone https://github.com/${CI_BUILD_REPO}.git ${repo_dir}
-        # git -C ${repo_dir} checkout ${CI_BUILD_COMMIT} 2>/dev/null
     elif [ -n "${CI_PULL_COMMIT}" ]; then
-        echo "-- github reports HEAD of ${CI_BASE_BRANCH} as $CI_BASE_COMMIT"
+        echo "-- github reports HEAD of ${CI_BASE_BRANCH} as ${CI_BASE_COMMIT}"
 
         local actual_base_head="$(gethead ${CI_BASE_REPO} ${CI_BASE_BRANCH})"
         if [ -n "${actual_base_head}" ]; then
@@ -151,12 +164,13 @@ main() {
             fi
         fi
 
-        create_merge_commit ${repo_dir} ${CI_BASE_REPO} ${CI_BASE_COMMIT} ${CI_PULL_REPO} ${CI_PULL_COMMIT} ${CI_PULL_NR}
+        echo "-- merging ${CI_PULL_COMMIT} into ${CI_BASE_COMMIT}"
+        create_merge_commit ${repo_dir} ${CI_BASE_REPO} ${CI_BASE_COMMIT} ${CI_PULL_COMMIT} ${CI_PULL_NR}
+        echo "--- using merge commit SHA1=${CI_MERGE_COMMIT}"
+        echo "-- done."
 
         export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
-
-        echo "---- using merge commit SHA1=${CI_MERGE_COMMIT}"
 
         dwqc "test -x .murdock" || {
             echo "PR does not contain .murdock build script, please rebase!"
