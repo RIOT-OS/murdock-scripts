@@ -154,7 +154,7 @@ main() {
             echo "-- Building commit ${CI_BUILD_COMMIT}..."
         fi
     elif [ -n "${CI_PULL_COMMIT}" ]; then
-        echo "-- github reports HEAD of ${CI_BASE_BRANCH} as ${CI_BASE_COMMIT}"
+        echo "-- PR base branch is ${CI_BASE_BRANCH} at ${CI_BASE_COMMIT}"
 
         local actual_base_head="$(gethead ${CI_BASE_REPO} ${CI_BASE_BRANCH})"
         if [ -n "${actual_base_head}" ]; then
