@@ -203,10 +203,9 @@ main() {
     kill ${reporter_pid} >/dev/null 2>&1 && wait ${reporter_pid} 2>/dev/null
 
     # Build Doxygen documentation
-    # uncomment the following if later make doc is handled in build.sh
-    # echo "-- Building Doxygen documentation"
-    # make -C ${repo_dir} doc --no-print-directory 2>/dev/null
-    # cp -R ${repo_dir}/doc/doxygen/html ./doc-preview
+    echo "-- Building Doxygen documentation"
+    make -C ${repo_dir} doc --no-print-directory 2>/dev/null
+    cp -R ${repo_dir}/doc/doxygen/html ./doc-preview
 
     # export result to post-build scripts
     if [ ${build_test_res} -eq 0 ]; then
