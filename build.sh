@@ -115,6 +115,7 @@ create_merge_commit() {
     fi
 
     export CI_MERGE_COMMIT="$(git -C ${repo_dir} rev-parse ${merge_branch})"
+    export CI_WORKER_BRANCH="${merge_branch}"
 }
 
 : ${NIGHTLY:=0}
@@ -153,6 +154,7 @@ main() {
         else
             echo "-- Building commit ${CI_BUILD_COMMIT}..."
         fi
+        export CI_WORKER_BRANCH="${build_branch}"
     elif [ -n "${CI_PULL_COMMIT}" ]; then
         echo "-- PR base branch is ${CI_BASE_BRANCH} at ${CI_BASE_COMMIT}"
 
@@ -228,6 +230,11 @@ main() {
     gzip result.json
     echo "--- Disk usage after compression : $(du -sh result.json.gz | awk '{print $1}')"
     echo "--- Total disk usage: $(du -sh . | awk '{print $1}')"
+
+    if [ -n "${CI_WORKER_BRANCH}" ]; then
+        echo "-- cleaning up worker branch"
+        git -C ${repo_dir} push --delete cache_repo ${CI_BUILD_BRANCH}
+    fi
 
     exit ${build_test_res}
 }
