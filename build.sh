@@ -206,6 +206,8 @@ main() {
 
     # Build Doxygen documentation
     echo "-- Building Doxygen documentation"
+    status='{"status" : {"status": "Building documentation"}}'
+    /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT ${MURDOCK_API_URL}/job/${CI_JOB_UID}/status > /dev/null
     make -C ${repo_dir} doc --no-print-directory 2>/dev/null
     cp -R ${repo_dir}/doc/doxygen/html ./doc-preview
 
