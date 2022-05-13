@@ -219,6 +219,11 @@ main() {
     # run post-build.d scripts
     post_build
 
+    if [ -n "${CI_WORKER_BRANCH}" ]; then
+        echo "-- cleaning up worker branch"
+        git -C ${repo_dir} push --delete cache_repo ${CI_WORKER_BRANCH}
+    fi
+
     # remove local copy of repository
     rm -rf ${repo_dir}
 
@@ -230,11 +235,6 @@ main() {
     gzip result.json
     echo "--- Disk usage after compression : $(du -sh result.json.gz | awk '{print $1}')"
     echo "--- Total disk usage: $(du -sh . | awk '{print $1}')"
-
-    if [ -n "${CI_WORKER_BRANCH}" ]; then
-        echo "-- cleaning up worker branch"
-        git -C ${repo_dir} push --delete cache_repo ${CI_BUILD_BRANCH}
-    fi
 
     exit ${build_test_res}
 }
