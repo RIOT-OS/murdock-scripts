@@ -13,6 +13,7 @@ RUN apt-get update && \
         make \
         python3-pip \
         ssh-client \
+        tini \
         wget \
         && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -45,5 +46,7 @@ ARG GID=1000
 RUN groupadd --gid ${GID} murdock
 RUN useradd --home-dir /home/murdock --shell /bin/bash --uid ${UID} --gid ${GID} murdock
 USER murdock
+
+ENTRYPOINT ["/usr/bin/tini", "-g", "--"]
 
 CMD ["/opt/murdock-scripts/build.sh"]
