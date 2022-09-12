@@ -178,6 +178,8 @@ main() {
         export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
 
+        set_status "checking cluster"
+
         dwqc "test -x .murdock" || {
             echo "CI cluster sanity check failed!"
             rm -f result.json
