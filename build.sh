@@ -175,7 +175,7 @@ main() {
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
 
         dwqc "test -x .murdock" || {
-            echo "PR does not contain .murdock build script, please rebase!"
+            echo "CI cluster sanity check failed!"
             rm -f result.json
             exit 2
         }
