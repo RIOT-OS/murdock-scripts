@@ -123,9 +123,13 @@ create_merge_commit() {
 : ${APPS:=}
 : ${BOARDS:=}
 
-main() {
-    local status='{"status" : {"status": "Fetching code"}}'
+set_status() {
+    local status="{\"status\" : {\"status\": \"${1}\"}}"
     /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT ${MURDOCK_API_URL}/job/${CI_JOB_UID}/status > /dev/null
+}
+
+main() {
+    set_status "fetching code"
 
     export APPS BOARDS
 
