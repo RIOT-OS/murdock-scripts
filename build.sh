@@ -8,7 +8,7 @@ CI_GIT_URL_WORKER="https://git.riot-os.org"
 
 MURDOCK_API_URL="http://localhost:8000"
 
-MERGE_COMMIT_REPO="murdock/RIOT"
+CI_BUILD_REPO_WORKER="murdock/RIOT"
 GITHUB_REPO_URL="https://github.com/RIOT-OS/RIOT"
 
 BASEDIR="$(dirname $(realpath $0))"
@@ -82,7 +82,7 @@ checkout_commit() {
     git-cache clone ${base_repo} ${base_commit} ${repo_dir}
 
     echo "--- adding remotes"
-    git -C ${repo_dir} remote add cache_repo "${CI_GIT_URL}/${MERGE_COMMIT_REPO}.git"
+    git -C ${repo_dir} remote add cache_repo "${CI_GIT_URL}/${CI_BUILD_REPO_WORKER}.git"
     git -C ${repo_dir} remote add github ${GITHUB_REPO_URL}
 
     git -C ${repo_dir} fetch github ${base_commit}
@@ -136,7 +136,7 @@ main() {
     local repo_dir="RIOT"
     if [ -n "${CI_BUILD_COMMIT}" ]; then
         export NIGHTLY STATIC_TESTS
-        export DWQ_REPO="${CI_BUILD_REPO}"
+        export DWQ_REPO="${CI_GIT_URL_WORKER}/${CI_BUILD_REPO_WORKER}"
         export DWQ_COMMIT="${CI_BUILD_COMMIT}"
         export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS"
 
@@ -175,7 +175,7 @@ main() {
         echo "--- using merge commit SHA1=${CI_MERGE_COMMIT}"
         echo "-- done."
 
-        export DWQ_REPO="${CI_GIT_URL_WORKER}/${MERGE_COMMIT_REPO}"
+        export DWQ_REPO="${CI_GIT_URL_WORKER}/${CI_BUILD_REPO_WORKER}"
         export DWQ_COMMIT="${CI_MERGE_COMMIT}"
 
         set_status "checking cluster"
