@@ -20,7 +20,7 @@ RUN apt-get update && \
 
 RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install \
-        dwq==0.0.54 \
+        dwq==0.0.56 \
         orjson==3.6.6 \
         requests==2.27.1
 
