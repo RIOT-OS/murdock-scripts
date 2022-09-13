@@ -99,7 +99,7 @@ create_merge_commit() {
     checkout_commit ${repo_dir} ${base_repo} ${base_head}
 
     echo "--- checking out merge branch"
-    local merge_branch=pull/${base_head}/${pr_head}
+    local merge_branch=${CI_MURDOCK_PROJECT}/pull/${base_head}/${pr_head}
     git -C ${repo_dir} checkout -B ${merge_branch}
     echo "--- fetching PR HEAD: ${pr_head}"
     git -C ${repo_dir} fetch github pull/${pr_num}/head -f
@@ -143,7 +143,7 @@ main() {
         checkout_commit ${repo_dir} ${GITHUB_REPO_URL} ${CI_BUILD_COMMIT}
 
         echo "--- checking out build branch"
-        local build_branch=build/${CI_BUILD_COMMIT}
+        local build_branch=${CI_MURDOCK_PROJECT}/build/${CI_BUILD_COMMIT}
         git -C ${repo_dir} checkout -B ${build_branch}
         git -C ${repo_dir} log -1 --oneline
         echo "--- pushing build branch"
