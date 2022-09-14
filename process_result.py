@@ -71,6 +71,9 @@ def parse_result(jobs):
         if job["type"] == "tests":
             tests_count += 1
             tests[application].append(job)
+            if worker not in workers_runtimes:
+                workers_runtimes.update({worker: []})
+            workers_runtimes[worker].append(job["runtime"])
             if job["status"] is False:
                 test_failures_count += 1
                 test_failures[application].append(job)
