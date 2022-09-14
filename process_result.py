@@ -107,7 +107,7 @@ def parse_result(jobs):
 
 
 def create_application_files(job_type, all_results):
-    if job_type == "run_test":
+    if job_type == "tests":
         jobs = all_results["tests"]
         jobs_failure = all_results["test_failures"]
     else:  # builds type jobs
@@ -176,9 +176,9 @@ def main():
             {
                 "application": test,
                 "failures": results_parsed["test_failures"][test],
-                "test_count": len(results_parsed["tests"][build]),
-                "test_success": len(results_parsed["test_success"][build]),
-                "test_failures": len(results_parsed["test_failures"][build]),
+                "test_count": len(results_parsed["tests"][test]),
+                "test_success": len(results_parsed["test_success"][test]),
+                "test_failures": len(results_parsed["test_failures"][test]),
             }
         )
 
@@ -186,11 +186,11 @@ def main():
         test_json.write(orjson.dumps(tests).decode())
 
     test_failures = []
-    for build, failures in results_parsed["test_failures"].items():
+    for test, failures in results_parsed["test_failures"].items():
         for job in failures:
             test_failures.append(
                 {
-                    "application": build,
+                    "application": test,
                     "target": job["target"],
                     "toolchain": job["toolchain"],
                     "worker": job["worker"],
