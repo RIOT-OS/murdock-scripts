@@ -213,6 +213,7 @@ main() {
     # Only build Doxygen documentation if the build job was successful
     if [ ${build_test_res} -eq 0 ]; then
         echo "-- Building Doxygen documentation"
+        set_status "building doxygen"
         make -C ${repo_dir} doc --no-print-directory 2>/dev/null
         cp -R ${repo_dir}/doc/doxygen/html ./doc-preview
     fi
@@ -224,6 +225,7 @@ main() {
         export CI_BUILD_RESULT=failed
     fi
 
+    set_status "finishing up"
     # run post-build.d scripts
     post_build
 
