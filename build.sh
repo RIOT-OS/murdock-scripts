@@ -138,7 +138,7 @@ main() {
         export NIGHTLY STATIC_TESTS
         export DWQ_REPO="${CI_GIT_URL_WORKER}/${CI_BUILD_REPO_WORKER}"
         export DWQ_COMMIT="${CI_BUILD_COMMIT}"
-        export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS"
+        export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS -E CI_MURDOCK_PROJECT"
 
         checkout_commit ${repo_dir} ${GITHUB_REPO_URL} ${CI_BUILD_COMMIT}
 
@@ -190,7 +190,7 @@ main() {
 
         export DWQ_ENV="-E CI_BASE_REPO -E CI_BASE_BRANCH -E CI_PULL_REPO -E CI_PULL_COMMIT \
             -E CI_PULL_NR -E CI_PULL_URL -E CI_PULL_LABELS -E CI_MERGE_COMMIT \
-            -E CI_BASE_COMMIT -E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS"
+            -E CI_BASE_COMMIT -E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS -E CI_MURDOCK_PROJECT"
     else # Invalid configuration, aborting
         echo "Invalid job configuration, return with error"
         exit 2
