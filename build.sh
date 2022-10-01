@@ -190,7 +190,8 @@ main() {
 
         export DWQ_ENV="-E CI_BASE_REPO -E CI_BASE_BRANCH -E CI_PULL_REPO -E CI_PULL_COMMIT \
             -E CI_PULL_NR -E CI_PULL_URL -E CI_PULL_LABELS -E CI_MERGE_COMMIT \
-            -E CI_BASE_COMMIT -E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS -E CI_MURDOCK_PROJECT"
+            -E CI_BASE_COMMIT -E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS \
+            -E CI_MURDOCK_PROJECT -E ENABLE_TEST_CACHE"
     else # Invalid configuration, aborting
         echo "Invalid job configuration, return with error"
         exit 2
