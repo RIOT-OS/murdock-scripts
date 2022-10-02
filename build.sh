@@ -138,7 +138,8 @@ main() {
         export NIGHTLY STATIC_TESTS
         export DWQ_REPO="${CI_GIT_URL_WORKER}/${CI_BUILD_REPO_WORKER}"
         export DWQ_COMMIT="${CI_BUILD_COMMIT}"
-        export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS -E CI_MURDOCK_PROJECT"
+        export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS \
+                        -E CI_MURDOCK_PROJECT -E ENABLE_TEST_CACHE"
 
         checkout_commit ${repo_dir} ${GITHUB_REPO_URL} ${CI_BUILD_COMMIT}
 
