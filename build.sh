@@ -128,6 +128,29 @@ set_status() {
     /usr/bin/curl -s -d "${status}" -H "Content-Type: application/json" -H "Authorization: ${CI_JOB_TOKEN}" -X PUT ${MURDOCK_API_URL}/job/${CI_JOB_UID}/status > /dev/null
 }
 
+check_label() {
+    local label="${1}"
+    [ -z "${CI_PULL_LABELS}" ] && return 1
+    echo "${CI_PULL_LABELS}" | grep -q "${label}"
+    return $?
+}
+
+if [ -z "${CI_FAST_FAIL}" ]; then
+    if [ "${NIGHTLY}" = "1" ]; then
+        export CI_FAST_FAIL=0
+    elif check_label "CI: no fast fail"; then
+        export CI_FAST_FAIL=0
+    else
+        export CI_FAST_FAIL=1
+    fi
+fi
+
+if [ "${CI_FAST_FAIL}" = "1" ]; then
+    export DWQ_MAXFAIL=0
+else
+    export DWQ_MAXFAIL=500
+fi
+
 main() {
     set_status "fetching code"
 
@@ -198,12 +221,14 @@ main() {
         exit 2
     fi
 
+    echo "--- Will abort after more than ${DWQ_MAXFAIL} failed job(s)."
+
     local report_queue="status::${CI_JOB_UID}:$(random)"
     ${BASEDIR}/reporter.py "${report_queue}" ${CI_JOB_UID} ${CI_JOB_TOKEN} &
     local reporter_pid=$!
 
     get_jobs | dwqc ${DWQ_ENV} \
-        --maxfail 500 \
+        --maxfail ${DWQ_MAXFAIL} \
         --quiet --report ${report_queue} --outfile result.json
 
     local build_test_res=$?
