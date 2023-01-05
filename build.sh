@@ -156,9 +156,17 @@ main() {
 
     export APPS BOARDS NIGHTLY STATIC_TESTS RUN_TESTS
 
-    export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS \
-                    -E CI_MURDOCK_PROJECT -E ENABLE_TEST_CACHE -E CI_FAST_FAIL \
-                    -E FULL_BUILD -ECI_BUILD_BRANCH"
+    export DWQ_ENV="-E APPS \
+                    -E BOARDS \
+                    -E CI_BUILD_BRANCH \
+                    -E CI_FAST_FAIL \
+                    -E CI_MURDOCK_PROJECT \
+                    -E ENABLE_TEST_CACHE \
+                    -E FULL_BUILD \
+                    -E NIGHTLY \
+                    -E RUN_TESTS \
+                    -E STATIC_TESTS \
+                    -E TEST_BOARDS_AVAILABLE"
 
     local repo_dir="RIOT"
     if [ -n "${CI_BUILD_COMMIT}" ]; then
