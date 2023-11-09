@@ -49,7 +49,7 @@ handle_merge_queue_build() {
 
         # Set CI_BASE_COMMIT in case of a merge queue build.
         if test -z "${CI_BASE_COMMIT}"; then
-            previous_merge="$(git -C ${repo_dir} merge-base ${CI_BASE_BRANCH} HEAD)"
+            previous_merge="$(git -C ${repo_dir} merge-base github/${CI_BASE_BRANCH} HEAD)"
             export CI_BASE_COMMIT="${previous_merge}"
         fi
 
