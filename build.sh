@@ -19,6 +19,44 @@ random() {
     hexdump -n ${1:-4} -e '/2 "%u"' /dev/urandom
 }
 
+# true if "$2" starts with "$1", false otherwise
+startswith() {
+  case "${2}" in
+    ${1}*) true ;;
+    *) false ;;
+  esac
+}
+
+# this function returns 0 when this is build is building one of the two merge
+# queue branches ("staging" or "trying", 1 otherwise.
+is_merge_queue_build() {
+    startswith "gh-readonly-queue/" "${CI_BUILD_BRANCH}"
+}
+
+# this function gets CI_BASE_BRANCH and CI_BASE_COMMIT from the build branch name,
+# when that looks like a Github merge_group build branch
+handle_merge_queue_build() {
+    local repo_dir="$1"
+
+    if is_merge_queue_build; then
+        echo "--- this is a merge_group build, fetching info"
+        # Set CI_BASE_BRANCH in case of a merge queue build.
+        if test -z "${CI_BASE_BRANCH}"; then
+            base_branch="$(echo ${CI_BUILD_BRANCH} | sed 's_gh-readonly-queue/\(.*\)/.*_\1_')"
+            export CI_BASE_BRANCH="${base_branch}"
+            git -C "${repo_dir}" fetch github "${CI_BASE_BRANCH}" -f
+        fi
+
+        # Set CI_BASE_COMMIT in case of a merge queue build.
+        if test -z "${CI_BASE_COMMIT}"; then
+            previous_merge="$(git -C ${repo_dir} merge-base ${CI_BASE_BRANCH} HEAD)"
+            export CI_BASE_COMMIT="${previous_merge}"
+        fi
+
+        echo "--- merge group base branch: ${CI_BASE_BRANCH}@${CI_BASE_COMMIT}"
+    fi
+}
+
 retry() {
     local tries=$1
     local delay=$2
@@ -158,7 +196,7 @@ main() {
 
     export DWQ_ENV="-E APPS -E BOARDS -E NIGHTLY -E STATIC_TESTS -E RUN_TESTS \
                     -E CI_MURDOCK_PROJECT -E ENABLE_TEST_CACHE -E CI_FAST_FAIL \
-                    -E FULL_BUILD -ECI_BUILD_BRANCH"
+                    -E FULL_BUILD -ECI_BUILD_BRANCH -ECI_BASE_BRANCH -ECI_BASE_COMMIT"
 
     local repo_dir="RIOT"
     if [ -n "${CI_BUILD_COMMIT}" ]; then
@@ -178,6 +216,7 @@ main() {
 
         if [ -n "${CI_BUILD_BRANCH}" ]; then
             echo "-- Building branch ${CI_BUILD_BRANCH} head: ${CI_BUILD_COMMIT}..."
+            handle_merge_queue_build "${repo_dir}"
         elif [ -n "${CI_BUILD_TAG}" ]; then
             echo "-- Building tag ${CI_BUILD_TAG} (${CI_BUILD_COMMIT})..."
         else
@@ -213,9 +252,8 @@ main() {
 
         echo "-- Building PR #${CI_PULL_NR} ${CI_PULL_URL} head: ${CI_PULL_COMMIT}..."
 
-        export DWQ_ENV="${DWQ_ENV} -E CI_BASE_REPO -E CI_BASE_BRANCH -E CI_PULL_REPO -E CI_PULL_COMMIT \
-            -E CI_PULL_NR -E CI_PULL_URL -E CI_PULL_LABELS -E CI_MERGE_COMMIT \
-            -E CI_BASE_COMMIT"
+        export DWQ_ENV="${DWQ_ENV} -E CI_BASE_REPO -E CI_PULL_REPO -E CI_PULL_COMMIT \
+            -E CI_PULL_NR -E CI_PULL_URL -E CI_PULL_LABELS -E CI_MERGE_COMMIT"
     else # Invalid configuration, aborting
         echo "Invalid job configuration, return with error"
         exit 2
