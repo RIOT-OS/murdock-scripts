@@ -262,7 +262,7 @@ main() {
     echo "--- Will abort after more than ${DWQ_MAXFAIL} failed job(s)."
 
     local report_queue="status::${CI_JOB_UID}:$(random)"
-    ${BASEDIR}/reporter.py "${report_queue}" ${CI_JOB_UID} ${CI_JOB_TOKEN} &
+    ${BASEDIR}/reporter.py -- "${report_queue}" "${CI_JOB_UID}" "${CI_JOB_TOKEN}" &
     local reporter_pid=$!
 
     get_jobs | dwqc ${DWQ_ENV} \
