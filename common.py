@@ -23,7 +23,7 @@ def parse_job(job):
     result = {}
     result["status"] = job["result"]["status"] in { 0, "0", "pass" }
     result["worker"] = job["result"]["worker"]
-    result["runtime"] = float(job["result"]["runtime"])
+    result["runtime"] = float(job["result"].get("runtime", 0))
     result["output"] = job["result"]["output"]
     result["name"] = os.path.join(
         *job["result"]["body"]["command"].split()[1:]
