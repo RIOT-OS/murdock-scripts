@@ -11,6 +11,7 @@ RUN apt-get update && \
         git \
         graphviz \
         make \
+        moreutils \
         python3-pip \
         python3-venv \
         ssh-client \
