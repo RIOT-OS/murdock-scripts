@@ -12,6 +12,7 @@ RUN apt-get update && \
         graphviz \
         make \
         python3-pip \
+        python3-venv \
         ssh-client \
         tini \
         wget \
