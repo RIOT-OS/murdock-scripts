@@ -278,7 +278,7 @@ main() {
     # Only build Doxygen documentation if the build job was successful
     if [ ${build_test_res} -eq 0 ]; then
         echo "-- Building Doxygen documentation"
-        make -C ${repo_dir} doc --no-print-directory 2>/dev/null
+        chronic make -C ${repo_dir} doc --no-print-directory
         cp -R ${repo_dir}/doc/doxygen/html ./doc-preview
     fi
 
