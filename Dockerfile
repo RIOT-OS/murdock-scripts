@@ -14,7 +14,6 @@ RUN apt-get update && \
         moreutils \
         python3-pip \
         python3-venv \
-        python3-yaml \
         ssh-client \
         tini \
         wget \
